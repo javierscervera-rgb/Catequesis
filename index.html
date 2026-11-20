@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#171310">
+<title>Catequesis · Parroquia San Sebastián Mártir</title>
+<meta name="description" content="Oratorios, Juniors y Postcomunión de la parroquia San Sebastián Mártir.">
+<style>
+  :root {
+    --bg: #171310; --card: #201D18; --accent: #CD8B75; --accent2: #D88972; --btn2: #292420;
+    --tx: #F0E8DC; --tx2: #AA9D8F; --bd: #37312B; --oro: #D9B36A; color-scheme: dark;
+  }
+  html[data-tema="claro"] {
+    --bg: #F6F0E7; --card: #FFFBF5; --accent: #B5604A; --accent2: #A4533F; --btn2: #EFE6DA;
+    --tx: #2A241D; --tx2: #7A6E60; --bd: #DDD2C3; --oro: #8E6A12; color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--bg); color: var(--tx); font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; line-height: 1.45; min-height: 100vh; }
+  .ibtn { position: absolute; top: 14px; right: 14px; width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--bd); background: var(--btn2); color: var(--tx); cursor: pointer; font-size: 1.1rem; }
+  main { max-width: 1040px; margin: 0 auto; padding: 48px 18px 60px; }
+  header { text-align: center; margin-bottom: 36px; }
+  header .parr { font-size: .78rem; letter-spacing: .18em; text-transform: uppercase; color: var(--tx2); }
+  header h1 { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; font-weight: 600; font-size: clamp(2.2rem, 6vw, 3.4rem); margin: 6px 0 4px; color: var(--accent2); }
+  header p { margin: 0; color: var(--tx2); }
+  h2 { font-size: .8rem; letter-spacing: .14em; text-transform: uppercase; color: var(--tx2); margin: 30px 4px 12px; display: flex; align-items: center; gap: 12px; }
+  h2::after { content: ""; flex: 1; height: 1px; background: var(--bd); }
+  .grid { display: grid; gap: 14px; }
+  .g3 { grid-template-columns: repeat(3, 1fr); }
+  .g2 { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 760px) { .g3, .g2 { grid-template-columns: 1fr; } main { padding-top: 64px; } }
+  a.card { display: flex; flex-direction: column; gap: 10px; text-decoration: none; color: var(--tx); background: var(--card); border: 1px solid var(--bd); border-radius: 18px; padding: 18px 18px 16px; position: relative; overflow: hidden; transition: transform .15s, border-color .15s; min-height: 168px; }
+  a.card:hover, a.card:focus-visible { transform: translateY(-2px); border-color: var(--accent); outline: none; }
+  a.card::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--c, var(--accent)); }
+  .card .top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .card .nom { font-family: "Iowan Old Style", Palatino, Georgia, serif; font-size: 1.6rem; font-weight: 600; line-height: 1.1; }
+  .card .dia { font-size: .78rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--c, var(--accent2)); white-space: nowrap; }
+  .card .cuenta { font-size: .85rem; color: var(--tx2); }
+  .card .prox { padding-right: 24px; margin-top: auto; border-top: 1px dashed var(--bd); padding-top: 10px; font-size: .9rem; }
+  .card .prox small { display: block; color: var(--tx2); font-size: .74rem; text-transform: uppercase; letter-spacing: .06em; }
+  .card .prox b { font-weight: 600; }
+  .card .ir { position: absolute; right: 16px; bottom: 14px; color: var(--accent2); font-size: 1.2rem; }
+  .extra { margin-top: 26px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .extra a { color: var(--tx2); text-decoration: none; border: 1px solid var(--bd); border-radius: 99px; padding: 8px 14px; font-size: .88rem; background: var(--card); }
+  .extra a:hover { color: var(--tx); border-color: var(--accent); }
+</style>
+<script>
+  (function () {
+    var t = null; try { t = localStorage.getItem("catequesis-tema"); } catch (e) {}
+    if (t !== "claro" && t !== "oscuro") t = matchMedia("(prefers-color-scheme: light)").matches ? "claro" : "oscuro";
+    document.documentElement.setAttribute("data-tema", t);
+  })();
+</script>
+</head>
+<body>
+<button class="ibtn" id="tema" title="Modo día / noche" aria-label="Modo día / noche">◐</button>
+<main>
+  <header>
+    <div class="parr">Parroquia San Sebastián Mártir</div>
+    <h1>Catequesis</h1>
+    <p>Elige el grupo con el que vas a trabajar</p>
+  </header>
+
+  <h2>Oratorios</h2>
+  <div class="grid g3">
+    <a class="card" href="oratorios.html?curso=1#lista" style="--c:#6E9A57" data-or="1">
+      <div class="top"><span class="nom">Primero</span><span class="dia">Viernes</span></div>
+      <div class="cuenta">Oratorio de primer curso</div>
+      <div class="prox"></div><span class="ir">→</span>
+    </a>
+    <a class="card" href="oratorios.html?curso=2#lista" style="--c:#C9963A" data-or="2">
+      <div class="top"><span class="nom">Segundo</span><span class="dia">Martes</span></div>
+      <div class="cuenta">Oratorio de segundo curso</div>
+      <div class="prox"></div><span class="ir">→</span>
+    </a>
+    <a class="card" href="oratorios.html?curso=3#lista" style="--c:#8E6FBF" data-or="3">
+      <div class="top"><span class="nom">Tercero</span><span class="dia">Miércoles</span></div>
+      <div class="cuenta">Oratorio de tercer curso</div>
+      <div class="prox"></div><span class="ir">→</span>
+    </a>
+  </div>
+
+  <h2>Catequesis de domingo</h2>
+  <div class="grid g2">
+    <a class="card" href="catequesis-parroquia.html?nivel=Juniors#lista" style="--c:#4F86B5" data-nivel="Juniors">
+      <div class="top"><span class="nom">Juniors</span><span class="dia">Domingo</span></div>
+      <div class="cuenta">Lectio Divina · El Credo, los Mandamientos y los Sacramentos</div>
+      <div class="prox"></div><span class="ir">→</span>
+    </a>
+    <a class="card" href="catequesis-parroquia.html?nivel=Postcomuni%C3%B3n#lista" style="--c:#CD8B75" data-nivel="Postcomunión">
+      <div class="top"><span class="nom">Postcomunión</span><span class="dia">Domingo</span></div>
+      <div class="cuenta">Lectio Divina · siete bloques después de la Primera Comunión</div>
+      <div class="prox"></div><span class="ir">→</span>
+    </a>
+  </div>
+
+  <div class="extra">
+    <a href="catequesis-sesion.html">📱 Sesiones de domingo para el móvil</a>
+    <a href="oratorios.html#lista">Todos los oratorios</a>
+  </div>
+</main>
+<script>
+(() => {
+  "use strict";
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const DIAS = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+  const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+  const fecha = f => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(f || ""); if (!m) return ""; const d = new Date(+m[1], m[2] - 1, +m[3]); return `${DIAS[d.getDay()]} ${d.getDate()} ${MESES[d.getMonth()]}`; };
+  const d = new Date(), hoy = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  // Datos publicados y, si este navegador edita, sus cambios locales
+  async function cargar(ruta, clave) {
+    let regs = [];
+    try { const r = await fetch(ruta + "?t=" + Date.now(), { cache: "no-store" }); if (r.ok) regs = (await r.json()).registros || []; } catch (_) {}
+    try {
+      const loc = JSON.parse(localStorage.getItem(clave) || "null");
+      if (loc && loc.registros) {
+        const m = new Map(regs.map(r => [String(r.id), r]));
+        for (const r of loc.registros) { const p = m.get(String(r.id)); if (!p || (+r.mod || 0) > (+p.mod || 0)) m.set(String(r.id), r); }
+        for (const id in (loc.borrados || {})) m.delete(id);
+        regs = [...m.values()];
+      }
+    } catch (_) {}
+    return regs;
+  }
+  function pinta(card, lista, total, etiqueta) {
+    const prox = lista.filter(r => r.fecha && r.fecha >= hoy && !r.realizado).sort((a, b) => a.fecha.localeCompare(b.fecha))[0];
+    card.querySelector(".cuenta").textContent += ` · ${total} ${etiqueta}`;
+    card.querySelector(".prox").innerHTML = prox
+      ? `<small>Próximo · ${esc(fecha(prox.fecha))}</small><b>${esc((prox.n || prox.sesion) ? (prox.n || prox.sesion) + ". " : "")}${esc(prox.nombre || prox.titulo || "Sin título")}</b>`
+      : `<small>Próximo</small>Sin fechas pendientes`;
+  }
+  cargar("oratorios.json", "oratorios-db").then(regs => {
+    document.querySelectorAll("[data-or]").forEach(c => { const l = regs.filter(r => r.curso === c.dataset.or); pinta(c, l, l.length, "oratorios"); });
+  });
+  cargar("catequesis-parroquia.json", "catequesis-db").then(regs => {
+    document.querySelectorAll("[data-nivel]").forEach(c => { const l = regs.filter(r => r.nivel === c.dataset.nivel); pinta(c, l, l.length, "sesiones"); });
+  });
+  document.getElementById("tema").onclick = () => {
+    const t = document.documentElement.getAttribute("data-tema") === "claro" ? "oscuro" : "claro";
+    document.documentElement.setAttribute("data-tema", t);
+    try { localStorage.setItem("catequesis-tema", t); } catch (_) {}
+  };
+})();
+</script>
+</body>
+</html>

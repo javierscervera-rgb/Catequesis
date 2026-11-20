@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#171310">
+<title>Oratorios · Catequesis</title>
+<style>
+  :root {
+    --bg: #171310; --card: #201D18; --accent: #CD8B75; --btn2: #292420;
+    --tx: #F0E8DC; --tx2: #AA9D8F; --bd: #37312B; --accent2: #D88972; --oro: #D9B36A;
+    --danger: #E5806F; --ok: #9DB58A; --barh: 64px;
+    color-scheme: dark;
+  }
+  html[data-tema="claro"] {
+    color-scheme: light;
+    --bg: #F6F0E7; --card: #FFFBF5; --btn2: #EFE6DA; --tx: #2A241D; --tx2: #7A6E60;
+    --bd: #DDD2C3; --accent: #B5604A; --accent2: #A4533F; --oro: #8E6A12; --danger: #B5483A; --ok: #4F7A3A;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--tx); -webkit-text-size-adjust: 100%; line-height: 1.45; }
+  .hidden { display: none !important; }
+  button, input, textarea, select { font: inherit; color: inherit; }
+
+  /* ---------- Barra superior ---------- */
+  #bar { position: sticky; top: 0; z-index: 30; min-height: var(--barh); display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--bg); border-bottom: 1px solid var(--bd); }
+  #bar h1 { margin: 0; font-size: 1.2rem; color: var(--accent2); font-weight: 650; white-space: nowrap; }
+  #bar .sp { flex: 1; }
+  .tabs { display: flex; border: 1px solid var(--bd); border-radius: 10px; overflow: hidden; flex: none; }
+  .tabs button { border: 0; background: var(--btn2); padding: 0 14px; height: 38px; cursor: pointer; }
+  .tabs button[aria-pressed="true"] { background: var(--accent); color: var(--bg); font-weight: 600; }
+  html[data-tema="claro"] .tabs button[aria-pressed="true"], html[data-tema="claro"] .btn.primary, html[data-tema="claro"] .curso button[aria-pressed="true"] { color: #fff; }
+  #sync { flex: none; display: flex; align-items: center; gap: 6px; font-size: .8rem; color: var(--tx2); max-width: 30vw; }
+  #sync .dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--tx2); }
+  #sync.ok .dot { background: var(--ok); } #sync.err .dot { background: var(--danger); }
+  #sync.busy .dot { background: var(--accent); animation: lat 1s ease-in-out infinite; }
+  #sync span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  @keyframes lat { 50% { opacity: .3; } }
+  .ibtn { flex: none; width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--bd); background: var(--btn2); font-size: 1.1rem; cursor: pointer; display: grid; place-items: center; text-decoration: none; color: var(--tx); }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--bd); background: var(--btn2); font-size: .93rem; cursor: pointer; white-space: nowrap; color: inherit; text-decoration: none; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--bg); font-weight: 600; }
+  .btn.danger { color: var(--danger); border-color: rgba(229,128,111,.45); }
+  .btn:disabled { opacity: .4; cursor: default; }
+
+  /* ---------- Lista ---------- */
+  #lista { max-width: 1500px; margin: 0 auto; padding: 14px 16px 48px; }
+  .curso { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .curso button { border: 1px solid var(--bd); background: var(--card); border-radius: 12px; padding: 8px 16px; cursor: pointer; text-align: left; line-height: 1.15; }
+  .curso button b { display: block; font-size: 1rem; }
+  .curso button small { color: var(--tx2); font-size: .78rem; }
+  .curso button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+  .curso button[aria-pressed="true"] small { color: inherit; opacity: .85; }
+  .tools { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; align-items: center; }
+  .tools input, .tools select { height: 40px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--bd); background: var(--card); min-width: 0; }
+  .tools input[type=search] { flex: 1 1 240px; }
+  .tools label.f { display: flex; align-items: center; gap: 6px; font-size: .85rem; color: var(--tx2); }
+  #cuenta { color: var(--tx2); font-size: .9rem; margin: 6px 2px 8px; }
+  .tabla { width: 100%; border-collapse: collapse; font-size: .9rem; }
+  .tabla th { text-align: left; font-weight: 600; color: var(--tx2); font-size: .74rem; text-transform: uppercase; letter-spacing: .03em; padding: 8px 6px; border-bottom: 1px solid var(--bd); cursor: pointer; user-select: none; white-space: nowrap; position: sticky; top: var(--barh); background: var(--bg); z-index: 2; }
+  .tabla th[aria-sort="ascending"]::after { content: " ▲"; color: var(--accent); }
+  .tabla th[aria-sort="descending"]::after { content: " ▼"; color: var(--accent); }
+  .tabla td { padding: 8px 6px; border-bottom: 1px solid var(--bd); vertical-align: top; }
+  .tabla tbody tr { cursor: pointer; }
+  .tabla tbody tr:hover { background: var(--card); }
+  .tabla tbody tr.hecho td { opacity: .55; }
+  .tabla tbody tr.hoy { box-shadow: inset 3px 0 0 var(--accent); }
+  .tabla .num { text-align: right; color: var(--accent2); font-weight: 700; width: 2.6em; }
+  .tabla .fec { white-space: nowrap; }
+  .tabla .fec small { display: block; color: var(--tx2); font-size: .75rem; }
+  .tabla .tit { font-weight: 650; }
+  .tabla .sub { color: var(--tx2); font-size: .82rem; margin-top: 2px; }
+  .tabla .cron { color: var(--tx2); font-size: .8rem; white-space: nowrap; }
+  .tabla .vers { font-style: italic; color: var(--tx2); font-size: .83rem; max-width: 26ch; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .tabla .canto { font-size: .83rem; max-width: 18ch; }
+  .chk { width: 22px; height: 22px; accent-color: var(--ok); cursor: pointer; }
+  .tiempo { display: inline-block; font-size: .72rem; font-weight: 700; padding: 2px 8px; border-radius: 99px; color: #fff; white-space: nowrap; }
+  .t-to { background: #4F7A3A; } .t-adv, .t-cuar { background: #6E4F96; } .t-nav, .t-epif, .t-pasc { background: #B08A1E; } .t-com { background: #B08A1E; } .t-conf { background: #A8402F; } .t-otro { background: #6b6259; }
+  .chip { display: inline-block; padding: 1px 8px; border-radius: 99px; background: var(--btn2); border: 1px solid var(--bd); font-size: .72rem; white-space: nowrap; }
+  .rev { font-size: .7rem; color: var(--ok); }
+  .sinrev { font-size: .7rem; color: var(--danger); }
+  mark { background: rgba(205,139,117,.35); color: inherit; border-radius: 3px; }
+  .vacio { padding: 40px; text-align: center; color: var(--tx2); }
+  @media (max-width: 1100px) { .tabla .c-canto, .tabla .c-vers { display: none; } }
+  @media (max-width: 760px) { .tabla .c-cron, .tabla .c-ora, .tabla .c-tiempo { display: none; } }
+
+  /* ---------- Ficha ---------- */
+  #ficha { max-width: 1300px; margin: 0 auto; padding: 14px 16px 60px; }
+  .nav { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+  .nav .pos { color: var(--tx2); font-size: .9rem; padding: 0 6px; }
+  .nav .sp { flex: 1; }
+  .cab { background: linear-gradient(180deg, rgba(205,139,117,.22), rgba(205,139,117,.06)); border: 1px solid var(--bd); border-radius: 16px; padding: 14px 16px; margin-bottom: 14px; display: grid; grid-template-columns: 1fr 280px; gap: 10px 20px; }
+  .cab .linea { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: .85rem; color: var(--tx2); }
+  .cab .linea select, .cab .linea input { height: 34px; border-radius: 8px; border: 1px solid var(--bd); background: var(--card); padding: 0 8px; color: var(--tx); }
+  #f-n { width: 4.2em; text-align: center; font-weight: 700; color: var(--accent2); }
+  #f-cronologia { flex: 1 1 200px; }
+  .cab .grande { background: transparent; border: 1px dashed transparent; border-radius: 8px; padding: 2px 6px; width: 100%; color: var(--tx); }
+  .cab .grande:hover, .cab .grande:focus { border-color: var(--bd); outline: none; background: rgba(0,0,0,.1); }
+  #f-nombre { font-size: clamp(1.25rem, 2.6vw, 1.9rem); font-weight: 800; text-transform: uppercase; }
+  #f-subtitulo { font-size: 1.05rem; color: var(--accent2); font-style: italic; }
+  .meta { grid-column: 2; grid-row: 1 / span 3; display: grid; gap: 6px; align-content: center; }
+  .meta label { display: grid; grid-template-columns: 6.5em 1fr; align-items: center; font-size: .74rem; color: var(--tx2); text-transform: uppercase; letter-spacing: .04em; }
+  .meta input { width: 100%; min-width: 0; height: 34px; border: 1px solid var(--bd); border-radius: 8px; background: var(--card); padding: 0 8px; color: var(--tx); text-transform: none; font-size: .95rem; }
+  .meta .checks { display: flex; gap: 16px; padding-left: 2px; }
+  .meta .checks label { display: flex; gap: 6px; text-transform: none; letter-spacing: 0; font-size: .92rem; color: var(--tx); }
+  .meta .dia { font-size: .85rem; color: var(--accent2); font-weight: 600; text-transform: none; letter-spacing: 0; }
+
+  .rejilla { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
+  .rejilla label { display: grid; gap: 3px; font-size: .72rem; color: var(--tx2); text-transform: uppercase; letter-spacing: .05em; font-weight: 600; background: var(--card); border: 1px solid var(--bd); border-radius: 12px; padding: 8px 10px; }
+  .rejilla input { border: 0; background: transparent; font-size: .98rem; color: var(--tx); text-transform: none; letter-spacing: 0; font-weight: 400; padding: 2px 0; }
+  .rejilla input:focus { outline: none; }
+
+  .cuerpo { display: grid; grid-template-columns: 210px 1fr 300px; gap: 16px; align-items: start; }
+  .indice { position: sticky; top: calc(var(--barh) + 12px); display: grid; gap: 2px; font-size: .85rem; }
+  .indice a { color: var(--tx2); text-decoration: none; padding: 5px 8px; border-radius: 8px; display: flex; gap: 8px; }
+  .indice a:hover { background: var(--card); color: var(--tx); }
+  .indice a b { color: var(--accent2); min-width: 1.4em; }
+  .indice a.lleno { color: var(--tx); }
+  .secciones { display: grid; gap: 12px; min-width: 0; }
+  fieldset { margin: 0; border: 1px solid var(--bd); border-radius: 14px; padding: 6px 14px 14px; background: var(--card); min-width: 0; scroll-margin-top: calc(var(--barh) + 12px); }
+  legend { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--tx2); padding: 0 6px; display: flex; gap: 8px; align-items: center; }
+  legend .n { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: var(--bg); font-size: .72rem; }
+  html[data-tema="claro"] legend .n { color: #fff; }
+  .rubrica { font-size: .82rem; color: var(--accent2); font-style: italic; margin: 2px 0 8px; }
+  fieldset textarea { width: 100%; display: block; border: 1px solid var(--bd); border-radius: 10px; background: var(--bg); padding: 9px 11px; resize: none; overflow: hidden; line-height: 1.5; min-height: 42px; }
+  fieldset textarea:focus, .meta input:focus, .cab .linea select:focus, .cab .linea input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .gracia textarea { font-size: 1.02rem; }
+  .versiculo textarea { font-family: "Iowan Old Style", Palatino, Georgia, serif; font-style: italic; font-size: 1.1rem; color: var(--oro); text-align: center; }
+  .lateral { position: sticky; top: calc(var(--barh) + 12px); display: grid; gap: 12px; }
+  .notas { background: rgba(217,179,106,.10); border-color: rgba(217,179,106,.45); }
+  .notas legend { color: var(--oro); }
+  @media (max-width: 1150px) { .cuerpo { grid-template-columns: 1fr 280px; } .indice { display: none; } }
+  @media (max-width: 860px) {
+    .cuerpo { grid-template-columns: 1fr; } .lateral { position: static; }
+    .cab { grid-template-columns: 1fr; } .meta { grid-column: auto; grid-row: auto; }
+    .rejilla { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 640px) { #bar h1, #sync span { display: none; } #bar { gap: 6px; padding: 8px; } .tabs button { padding: 0 10px; } .ibtn { width: 36px; height: 36px; } }
+
+  dialog { border: 1px solid var(--bd); border-radius: 14px; background: var(--card); color: var(--tx); width: min(520px, 94vw); padding: 18px; }
+  dialog::backdrop { background: rgba(0,0,0,.55); }
+  dialog h2 { margin: 0 0 10px; font-size: 1.1rem; color: var(--accent2); }
+  .fld { display: grid; gap: 4px; margin-bottom: 10px; }
+  .fld label { font-size: .8rem; color: var(--tx2); }
+  .fld input { height: 40px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--bd); background: var(--bg); }
+  .nota { font-size: .84rem; color: var(--tx2); margin: 0 0 12px; }
+  .acciones { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; margin-top: 8px; }
+  .acciones .izqb { margin-right: auto; }
+  .msg { font-size: .85rem; min-height: 1.2em; color: var(--tx2); }
+  .msg.err { color: var(--danger); } .msg.ok { color: var(--ok); }
+  #toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--accent); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-weight: 600; z-index: 99; opacity: 0; transition: opacity .2s; pointer-events: none; }
+  #toast.on { opacity: 1; }
+</style>
+<script>
+  (function () {
+    var t = null; try { t = localStorage.getItem("catequesis-tema"); } catch (e) {}
+    if (t !== "claro" && t !== "oscuro") t = matchMedia("(prefers-color-scheme: light)").matches ? "claro" : "oscuro";
+    document.documentElement.setAttribute("data-tema", t);
+  })();
+</script>
+</head>
+<body>
+
+<header id="bar">
+  <a class="ibtn" href="index.html" title="Inicio" aria-label="Inicio">⌂</a>
+  <h1>Oratorios</h1>
+  <div class="tabs" role="group" aria-label="Vista">
+    <button id="tabLista" aria-pressed="true">Lista</button>
+    <button id="tabFicha" aria-pressed="false">Ficha</button>
+  </div>
+  <div class="sp"></div>
+  <div id="sync"><i class="dot"></i><span>Cargando…</span></div>
+  <button class="ibtn" id="temaBtn" title="Modo día / noche" aria-label="Modo día / noche">◐</button>
+  <button class="ibtn" id="cfgBtn" title="Ajustes y copias" aria-label="Ajustes y copias">⚙︎</button>
+</header>
+
+<!-- ===================== LISTA ===================== -->
+<main id="lista">
+  <div class="curso" role="group" aria-label="Curso">
+    <button data-c=""><b>Todos</b><small>los tres cursos</small></button>
+    <button data-c="1"><b>Primero</b><small>viernes</small></button>
+    <button data-c="2"><b>Segundo</b><small>martes</small></button>
+    <button data-c="3"><b>Tercero</b><small>miércoles</small></button>
+  </div>
+  <div class="tools">
+    <input type="search" id="buscar" placeholder="Buscar en todo: título, versículo, cantos, comentario…" autocomplete="off">
+    <select id="fTiempo" aria-label="Tiempo litúrgico"></select>
+    <select id="fEstado" aria-label="Estado">
+      <option value="">Cualquier estado</option>
+      <option value="proximos">Próximos (desde hoy)</option>
+      <option value="porRealizar">Por realizar</option>
+      <option value="realizado">Realizados</option>
+      <option value="sinRevisar">Sin revisar</option>
+      <option value="revisado">Revisados</option>
+      <option value="sinFecha">Sin fecha</option>
+    </select>
+    <label class="f">Desde <input type="date" id="fDesde"></label>
+    <label class="f">Hasta <input type="date" id="fHasta"></label>
+    <button class="btn" id="limpiar">Limpiar</button>
+    <button class="btn primary" id="nuevoL">＋ Nuevo oratorio</button>
+  </div>
+  <div id="cuenta"></div>
+  <table class="tabla">
+    <thead><tr>
+      <th data-k="realizado" title="Realizado">✓</th>
+      <th data-k="fecha">Fecha</th>
+      <th data-k="tiempo" class="c-tiempo">Tiempo</th>
+      <th data-k="n" class="num">Nº</th>
+      <th data-k="cronologia" class="c-cron">Cronología</th>
+      <th data-k="nombre">Título</th>
+      <th data-k="oracion" class="c-ora">Oración</th>
+      <th data-k="versiculo" class="c-vers">Versículo</th>
+      <th data-k="canto" class="c-canto">Canto meditativo</th>
+      <th data-k="cantoFinal" class="c-canto">Canto final</th>
+    </tr></thead>
+    <tbody id="filas"></tbody>
+  </table>
+  <div id="sinRes" class="vacio hidden">No hay oratorios que coincidan con la búsqueda.</div>
+</main>
+
+<!-- ===================== FICHA ===================== -->
+<main id="ficha" class="hidden">
+  <div class="nav">
+    <button class="btn" id="primero" title="Primero">⏮</button>
+    <button class="btn" id="anterior" title="Anterior">◀</button>
+    <span class="pos" id="pos"></span>
+    <button class="btn" id="siguiente" title="Siguiente">▶</button>
+    <button class="btn" id="ultimo" title="Último">⏭</button>
+    <div class="sp"></div>
+    <button class="btn" id="nuevo">＋ Nuevo</button>
+    <button class="btn" id="duplicar" title="Duplicar, por ejemplo para usarlo en otro curso">Duplicar</button>
+    <button class="btn primary" id="pdfBtn">Folleto PDF</button>
+    <button class="btn danger" id="borrar">Borrar</button>
+  </div>
+
+  <div class="cab">
+    <div class="linea">
+      <select id="f-curso" data-f="curso" aria-label="Curso">
+        <option value="">Sin curso</option><option value="1">Primero</option><option value="2">Segundo</option><option value="3">Tercero</option>
+      </select>
+      Nº <input id="f-n" data-f="n" aria-label="Número">
+      <input id="f-cronologia" data-f="cronologia" list="dlCron" placeholder="Cronología (p. ej. 2º ORATORIO T.O.)" aria-label="Cronología">
+    </div>
+    <input class="grande" id="f-nombre" data-f="nombre" placeholder="TÍTULO DEL ORATORIO" aria-label="Título">
+    <input class="grande" id="f-subtitulo" data-f="subtitulo" placeholder="Subtítulo" aria-label="Subtítulo">
+    <div class="meta">
+      <label>Fecha <input id="f-fecha" data-f="fecha" type="date"></label>
+      <span class="dia" id="dia"></span>
+      <label>Tiempo <input id="f-tiempo" data-f="tiempo" list="dlTiempos" placeholder="T.O., ADV., CUAR.…"></label>
+      <label>Nº original <input id="f-numOriginal" data-f="numOriginal"></label>
+      <div class="checks">
+        <label><input type="checkbox" class="chk" data-f="revisado"> Revisado</label>
+        <label><input type="checkbox" class="chk" data-f="realizado"> Realizado</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="rejilla">
+    <label>Texto <input data-f="escuchaRef" id="f-ref" placeholder="Cita bíblica" readonly title="Se toma de «Escucha de la Palabra»"></label>
+    <label>Oración en voz alta <input data-f="oracion" list="dlOraciones"></label>
+    <label>Canto meditativo <input data-f="canto" list="dlCantos"></label>
+    <label>Canto final <input data-f="cantoFinal" list="dlCantos"></label>
+  </div>
+
+  <div class="cuerpo">
+    <nav class="indice" id="indice" aria-label="Momentos del oratorio"></nav>
+    <div class="secciones" id="secciones"></div>
+    <aside class="lateral">
+      <fieldset class="notas"><legend>Comentarios de D. Javier</legend><textarea data-f="comentarios" rows="4"></textarea></fieldset>
+      <fieldset><legend>Observaciones</legend><textarea data-f="observaciones" rows="4"></textarea></fieldset>
+    </aside>
+  </div>
+</main>
+
+<datalist id="dlTiempos"></datalist><datalist id="dlCantos"></datalist><datalist id="dlOraciones"></datalist><datalist id="dlCron"></datalist>
+
+<!-- ===================== AJUSTES ===================== -->
+<dialog id="cfg">
+  <h2>Guardar en GitHub</h2>
+  <p class="nota">Los oratorios se guardan en <code>oratorios.json</code> del repositorio. Sin token, la página muestra lo publicado y lo que edites se queda en este navegador. Con un token <i>fine-grained</i> con permiso <i>Contents: Read and write</i> sobre el repositorio, los cambios se suben solos. Es el mismo token que usa la página de Juniors y Postcomunión.</p>
+  <div class="fld"><label for="cOwner">Usuario</label><input id="cOwner" autocapitalize="off" spellcheck="false"></div>
+  <div class="fld"><label for="cRepo">Repositorio</label><input id="cRepo" autocapitalize="off" spellcheck="false"></div>
+  <div class="fld"><label for="cToken">Token</label><input id="cToken" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="github_pat_…"></div>
+  <div class="msg" id="cMsg"></div>
+  <div class="acciones">
+    <button class="btn danger izqb" id="cOlvidar">Olvidar token</button>
+    <button class="btn" id="cCerrar">Cerrar</button>
+    <button class="btn primary" id="cGuardar">Guardar y sincronizar</button>
+  </div>
+  <h2 style="margin-top:18px">Copias</h2>
+  <div class="acciones" style="justify-content:flex-start">
+    <button class="btn" id="expJSON">Descargar JSON</button>
+    <button class="btn" id="expCSV">Descargar CSV (lista filtrada)</button>
+    <label class="btn">Importar JSON<input type="file" id="impJSON" accept=".json,application/json" hidden></label>
+  </div>
+</dialog>
+
+<script src="oratorio-pdf.js"></script>
+<script>
+(() => {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const store = {
+    get(k, def) { try { const v = localStorage.getItem(k); return v == null ? def : JSON.parse(v); } catch (_) { return def; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (_) { return false; } }
+  };
+  let toastT = null;
+  function toast(m) {
+    let el = $("toast"); if (!el) { el = document.createElement("div"); el.id = "toast"; el.setAttribute("role", "status"); document.body.appendChild(el); }
+    el.textContent = m; el.classList.add("on"); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove("on"), 2200);
+  }
+
+  /* ---------- Datos ---------- */
+  const TEXTOS = ["curso", "n", "cronologia", "nombre", "subtitulo", "numOriginal", "fecha", "tiempo", "oracion", "canto", "cantoFinal",
+    "gracia", "preparacion", "entrada", "memoria", "oracionCorazon", "introPalabra", "escuchaPalabra", "comentario", "versiculo",
+    "aplicacion", "oracionesComun", "oracionFinal", "despedida", "observaciones", "comentarios"];
+  const BOOLS = ["revisado", "realizado"];
+  // Momentos del oratorio, en el orden del folleto
+  const SECCIONES = [
+    { f: "gracia", t: "Gracia de la reunión", cls: "gracia" },
+    { f: "preparacion", n: 1, t: "Preparación previa" },
+    { f: "entrada", n: 2, t: "Entrada y saludo personal", r: "Ponemos música tranquila con el altavoz." },
+    { n: 3, t: "Oración de la semana y oración en voz alta", r: "De pie, alrededor de la alfombra, con las manos juntas. Señal de la cruz, oración de la semana y gloria. Después, con las manos extendidas, el catequista hace su oración en voz alta y los niños van repitiendo.", soloRubrica: true },
+    { f: "memoria", n: 4, t: "Memoria del encuentro anterior" },
+    { f: "oracionCorazon", n: 5, t: "Oración del corazón y canto meditativo" },
+    { f: "introPalabra", n: 6, t: "Introducción a la Palabra de Dios" },
+    { f: "escuchaPalabra", n: 7, t: "Escucha de la Palabra" },
+    { f: "comentario", n: 8, t: "Comentario de la Palabra" },
+    { f: "versiculo", t: "Versículo clave", cls: "versiculo" },
+    { f: "aplicacion", n: 9, t: "Aplicación a la vida" },
+    { f: "oracionesComun", n: 10, t: "Oraciones en común" },
+    { f: "oracionFinal", n: 11, t: "Oración final y canto de salida" },
+    { f: "despedida", n: 12, t: "Despedida y salida" }
+  ];
+  const CURSOS = { "1": { n: "Primero", dia: "viernes", ord: "1º" }, "2": { n: "Segundo", dia: "martes", ord: "2º" }, "3": { n: "Tercero", dia: "miércoles", ord: "3º" } };
+  const KEY_DB = "oratorios-db", KEY_UI = "oratorios-ui", KEY_CFG = "catequesis-cfg", RUTA = "oratorios.json";
+  const vacio = () => ({ version: 1, registros: [], borrados: {} });
+  function limpiar(d) {
+    const out = vacio(); if (!d || typeof d !== "object") return out;
+    for (const r of (Array.isArray(d) ? d : d.registros || [])) {
+      if (!r || r.id == null) continue;
+      const x = { id: String(r.id), mod: +r.mod || 0 };
+      for (const c of TEXTOS) x[c] = r[c] == null ? "" : String(r[c]);
+      for (const c of BOOLS) x[c] = !!r[c];
+      out.registros.push(x);
+    }
+    if (d.borrados) for (const k in d.borrados) out.borrados[k] = +d.borrados[k] || 0;
+    return out;
+  }
+  function unir(a, b) {
+    const m = new Map(), bor = Object.assign({}, a.borrados);
+    for (const k in b.borrados) bor[k] = Math.max(bor[k] || 0, b.borrados[k]);
+    for (const r of a.registros.concat(b.registros)) { const p = m.get(r.id); if (!p || r.mod > p.mod) m.set(r.id, r); }
+    return { version: 1, registros: [...m.values()].filter(r => !(bor[r.id] && bor[r.id] >= r.mod)), borrados: bor };
+  }
+  const firma = d => JSON.stringify(d.registros.slice().sort((x, y) => x.id < y.id ? -1 : 1).map(r => [r.id, r.mod])) + JSON.stringify(Object.keys(d.borrados).sort());
+  let db = limpiar(store.get(KEY_DB, null));
+  const guardarLocal = () => store.set(KEY_DB, db);
+  const porId = id => db.registros.find(r => r.id === id);
+
+  /* ---------- GitHub (mismo token que Juniors/Postcomunión) ---------- */
+  const defCfg = { owner: "javierscervera-rgb", repo: "Catequesis", token: "" };
+  let cfg = Object.assign({}, defCfg, store.get(KEY_CFG, {}));
+  const configurado = () => !!(cfg.owner && cfg.repo && cfg.token);
+  const syncEl = $("sync");
+  function estado(clase, texto, titulo) { syncEl.className = clase; syncEl.querySelector("span").textContent = texto; syncEl.title = titulo || texto; }
+  const bytesB64 = b => { let r = ""; for (let i = 0; i < b.length; i += 0x8000) r += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); return btoa(r); };
+  const b64enc = s => bytesB64(new TextEncoder().encode(s));
+  const b64dec = s => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\s/g, "")), c => c.charCodeAt(0)));
+  const apiURL = () => "https://api.github.com/repos/" + encodeURIComponent(cfg.owner) + "/" + encodeURIComponent(cfg.repo) + "/contents/" + RUTA;
+  async function gh(method, body, accept) {
+    const r = await fetch(apiURL(), { method, cache: "no-store",
+      headers: { "Authorization": "Bearer " + cfg.token, "Accept": accept || "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28", ...(body ? { "Content-Type": "application/json" } : {}) },
+      body: body ? JSON.stringify(body) : undefined });
+    if (!r.ok) { const e = new Error("http " + r.status); e.status = r.status; throw e; }
+    return r;
+  }
+  async function bajar() {
+    try {
+      const j = await (await gh("GET")).json();
+      let txt = j.content ? b64dec(j.content) : "";
+      if (!txt && j.size > 0) txt = await (await gh("GET", null, "application/vnd.github.raw")).text();
+      return { data: txt ? limpiar(JSON.parse(txt)) : vacio(), sha: j.sha };
+    } catch (e) { if (e.status === 404) return { data: null, sha: null }; throw e; }
+  }
+  async function subir(data, sha) {
+    const body = { message: "Oratorios: " + new Date().toISOString(), content: b64enc(JSON.stringify(data, null, 1)) };
+    if (sha) body.sha = sha;
+    await gh("PUT", body);
+  }
+  async function bajarPublico() {
+    try { const r = await fetch(RUTA + "?t=" + Date.now(), { cache: "no-store" }); return r.ok ? limpiar(await r.json()) : null; } catch (_) { return null; }
+  }
+  function explicar(e) {
+    if (!navigator.onLine) return "Sin conexión: guardado en este dispositivo";
+    if (e.status === 401) return "Token no válido o caducado";
+    if (e.status === 403) return "El token no tiene permiso de escritura";
+    if (e.status === 404) return "No se encuentra el repositorio";
+    return "No se pudo sincronizar (" + (e.status || "red") + ")";
+  }
+  const pendientes = () => db.registros.some(r => r.mod > 0) && store.get(KEY_DB + "-subido", "") !== firma(db);
+  let sincronizando = false, otraVez = false;
+  async function sync() {
+    if (sincronizando) { otraVez = true; return; }
+    sincronizando = true;
+    try {
+      if (!configurado()) {
+        const pub = await bajarPublico();
+        if (pub) { db = unir(db, pub); guardarLocal(); render(); }
+        const loc = pendientes();
+        estado(loc ? "err" : "", loc ? "Solo en este dispositivo" : "Solo lectura", loc ? "Hay cambios sin subir: configura el token en ⚙︎" : "Para guardar cambios en GitHub, configura el token en ⚙︎");
+        return;
+      }
+      estado("busy", "Sincronizando…");
+      for (let i = 0; i < 3; i++) {
+        const { data, sha } = await bajar();
+        const unido = data ? unir(db, data) : db;
+        db = unido; guardarLocal();
+        if (!data || firma(unido) !== firma(data)) {
+          try { await subir(unido, sha); } catch (e) { if (e.status === 409 || e.status === 422) continue; throw e; }
+        }
+        store.set(KEY_DB + "-subido", firma(db)); render();
+        estado("ok", "Guardado en GitHub", "Sincronizado " + new Date().toLocaleTimeString());
+        return;
+      }
+      throw Object.assign(new Error("conflicto"), { status: 409 });
+    } catch (e) { estado("err", explicar(e)); }
+    finally { sincronizando = false; if (otraVez) { otraVez = false; sync(); } }
+  }
+  let subirT = null;
+  function cambio() { guardarLocal(); clearTimeout(subirT); subirT = setTimeout(sync, 1500); }
+
+  /* ---------- Utilidades ---------- */
+  const norm = s => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  const DIAS = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"];
+  const DIAS_L = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+  const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+  const fechaD = f => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(f || ""); return m ? new Date(+m[1], m[2] - 1, +m[3]) : null; };
+  const fechaES = f => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(f || ""); return m ? `${+m[3]}/${+m[2]}/${m[1]}` : ""; };
+  const fechaLarga = f => { const d = fechaD(f); return d ? `${DIAS_L[d.getDay()]}, ${d.getDate()} de ${MESES[d.getMonth()]} de ${d.getFullYear()}` : ""; };
+  const hoyISO = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
+  function claseTiempo(t) {
+    const n = norm(t);
+    if (/^t\.?o/.test(n)) return "t-to"; if (n.startsWith("adv")) return "t-adv"; if (n.startsWith("cuar")) return "t-cuar";
+    if (n.startsWith("nav")) return "t-nav"; if (n.startsWith("epif")) return "t-epif"; if (n.startsWith("pasc")) return "t-pasc";
+    if (n.includes("conf")) return "t-conf"; if (n.includes("com")) return "t-com"; return "t-otro";
+  }
+  const cita = r => (r.escuchaPalabra || "").split("\n")[0].trim().slice(0, 60);
+  const num = s => parseInt(s, 10) || 0;
+
+  /* ---------- Estado de la interfaz ---------- */
+  const qs = new URLSearchParams(location.search);
+  const ui = Object.assign({ curso: "", q: "", tiempo: "", estado: "", desde: "", hasta: "", orden: "fecha", dir: 1 }, store.get(KEY_UI, {}));
+  if (qs.has("curso")) ui.curso = qs.get("curso");
+  let encontrados = [], actual = null;
+
+  function comparar(k) {
+    const base = (a, b) => (a.fecha || "9999").localeCompare(b.fecha || "9999") || a.curso.localeCompare(b.curso) || num(a.n) - num(b.n);
+    if (k === "fecha") return base;
+    if (k === "n") return (a, b) => num(a.n) - num(b.n) || base(a, b);
+    if (k === "realizado") return (a, b) => (a.realizado - b.realizado) || base(a, b);
+    return (a, b) => (a[k] || "").localeCompare(b[k] || "", "es", { sensitivity: "base" }) || base(a, b);
+  }
+  function filtrar() {
+    const ps = norm(ui.q).split(/\s+/).filter(Boolean), hoy = hoyISO();
+    const res = db.registros.filter(r => {
+      if (ui.curso && r.curso !== ui.curso) return false;
+      if (ui.tiempo && r.tiempo !== ui.tiempo) return false;
+      if (ui.desde && (!r.fecha || r.fecha < ui.desde)) return false;
+      if (ui.hasta && (!r.fecha || r.fecha > ui.hasta)) return false;
+      switch (ui.estado) {
+        case "proximos": if (!r.fecha || r.fecha < hoy) return false; break;
+        case "porRealizar": if (r.realizado) return false; break;
+        case "realizado": if (!r.realizado) return false; break;
+        case "sinRevisar": if (r.revisado) return false; break;
+        case "revisado": if (!r.revisado) return false; break;
+        case "sinFecha": if (r.fecha) return false; break;
+      }
+      if (ps.length) { const todo = norm(TEXTOS.map(c => r[c]).join(" ") + " " + fechaES(r.fecha)); if (!ps.every(p => todo.includes(p))) return false; }
+      return true;
+    });
+    const cmp = comparar(ui.orden);
+    return res.sort((a, b) => ui.dir * cmp(a, b));
+  }
+  function resaltar(txt) {
+    const ps = norm(ui.q).split(/\s+/).filter(Boolean); txt = String(txt || "");
+    if (!ps.length) return esc(txt);
+    const n = norm(txt); if (n.length !== txt.length) return esc(txt);
+    const m = new Array(txt.length).fill(false);
+    for (const p of ps) { let i = 0; while ((i = n.indexOf(p, i)) >= 0) { for (let j = i; j < i + p.length; j++) m[j] = true; i += p.length; } }
+    let out = "", on = false;
+    for (let i = 0; i < txt.length; i++) { if (m[i] !== on) { out += m[i] ? "<mark>" : "</mark>"; on = m[i]; } out += esc(txt[i]); }
+    return out + (on ? "</mark>" : "");
+  }
+  function datalists() {
+    const uniq = k => [...new Set(db.registros.map(r => (r[k] || "").trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, "es"));
+    const tiempos = uniq("tiempo");
+    const sel = $("fTiempo");
+    sel.innerHTML = `<option value="">Todos los tiempos</option>` + tiempos.map(t => `<option${t === ui.tiempo ? " selected" : ""}>${esc(t)}</option>`).join("");
+    if (ui.tiempo && !tiempos.includes(ui.tiempo)) sel.value = "";
+    $("dlTiempos").innerHTML = tiempos.map(t => `<option value="${esc(t)}">`).join("");
+    $("dlCantos").innerHTML = [...new Set(uniq("canto").concat(uniq("cantoFinal")))].map(t => `<option value="${esc(t)}">`).join("");
+    $("dlOraciones").innerHTML = uniq("oracion").map(t => `<option value="${esc(t)}">`).join("");
+    $("dlCron").innerHTML = uniq("cronologia").map(t => `<option value="${esc(t)}">`).join("");
+  }
+
+  function renderLista() {
+    datalists();
+    document.querySelectorAll(".curso button").forEach(b => b.setAttribute("aria-pressed", b.dataset.c === ui.curso));
+    encontrados = filtrar();
+    const total = db.registros.filter(r => !ui.curso || r.curso === ui.curso).length;
+    const hechos = encontrados.filter(r => r.realizado).length;
+    $("cuenta").textContent = `${encontrados.length === total ? total : encontrados.length + " de " + total} oratorios` + (ui.curso ? ` de ${CURSOS[ui.curso] ? CURSOS[ui.curso].n.toLowerCase() : ""}` : "") + (hechos ? ` · ${hechos} realizados` : "");
+    document.querySelectorAll(".tabla th").forEach(th => th.setAttribute("aria-sort", th.dataset.k === ui.orden ? (ui.dir > 0 ? "ascending" : "descending") : "none"));
+    const hoy = hoyISO();
+    const prox = encontrados.find(r => r.fecha && r.fecha >= hoy && !r.realizado);
+    $("filas").innerHTML = encontrados.map(r => {
+      const d = fechaD(r.fecha);
+      return `<tr data-id="${esc(r.id)}" class="${r.realizado ? "hecho" : ""} ${prox && prox.id === r.id ? "hoy" : ""}">
+        <td><input type="checkbox" class="chk" data-hecho="${esc(r.id)}" ${r.realizado ? "checked" : ""} title="Realizado" aria-label="Realizado"></td>
+        <td class="fec">${d ? `${DIAS[d.getDay()]} ${esc(fechaES(r.fecha))}` : "—"}${!ui.curso && CURSOS[r.curso] ? `<small>${CURSOS[r.curso].n}</small>` : ""}</td>
+        <td class="c-tiempo">${r.tiempo ? `<span class="tiempo ${claseTiempo(r.tiempo)}">${esc(r.tiempo)}</span>` : ""}</td>
+        <td class="num">${esc(r.n)}</td>
+        <td class="c-cron"><span class="cron">${resaltar(r.cronologia)}</span><br>${r.revisado ? `<span class="rev">● revisado</span>` : `<span class="sinrev">○ sin revisar</span>`}</td>
+        <td><div class="tit">${resaltar(r.nombre || "(sin título)")}</div>${r.subtitulo ? `<div class="sub">${resaltar(r.subtitulo)}</div>` : ""}${cita(r) ? `<div class="sub">📖 ${resaltar(cita(r))}</div>` : ""}</td>
+        <td class="c-ora">${resaltar(r.oracion)}</td>
+        <td class="c-vers"><div class="vers">${resaltar(r.versiculo)}</div></td>
+        <td class="c-canto"><div class="canto">${resaltar(r.canto)}</div></td>
+        <td class="c-canto"><div class="canto">${resaltar(r.cantoFinal)}</div></td>
+      </tr>`;
+    }).join("");
+    $("sinRes").classList.toggle("hidden", encontrados.length > 0);
+  }
+
+  /* ---------- Ficha ---------- */
+  $("secciones").innerHTML = SECCIONES.map((s, i) => `
+    <fieldset id="sec-${i}" class="${s.cls || ""}">
+      <legend>${s.n ? `<span class="n">${s.n}</span>` : ""}${esc(s.t)}</legend>
+      ${s.r ? `<div class="rubrica">${esc(s.r)}</div>` : ""}
+      ${s.n === 5 ? `<div class="rubrica">Al terminar cantamos el canto meditativo: <b data-ver="canto"></b></div>` : ""}
+      ${s.n === 11 ? `<div class="rubrica">Al terminar cantamos para dar gracias: <b data-ver="cantoFinal"></b></div>` : ""}
+      ${s.n === 3 ? `<div class="rubrica">Oración en voz alta de este oratorio: <b data-ver="oracion"></b></div>` : ""}
+      ${s.f ? `<textarea data-f="${s.f}" rows="2"></textarea>` : ""}
+    </fieldset>`).join("");
+  $("indice").innerHTML = SECCIONES.map((s, i) => `<a href="#sec-${i}" data-sec="${s.f || ""}"><b>${s.n || "·"}</b>${esc(s.t)}</a>`).join("");
+  $("indice").addEventListener("click", e => { const a = e.target.closest("a"); if (!a) return; e.preventDefault(); document.querySelector(a.getAttribute("href")).scrollIntoView({ behavior: "smooth" }); });
+
+  const campos = () => [...document.querySelectorAll("#ficha [data-f]")];
+  function crece(t) { if (t.tagName !== "TEXTAREA") return; t.style.height = "auto"; t.style.height = t.scrollHeight + 2 + "px"; }
+  function pintarDerivados(r) {
+    document.querySelectorAll("[data-ver]").forEach(el => el.textContent = r ? (r[el.dataset.ver] || "—") : "");
+    $("f-ref").value = r ? cita(r) : "";
+    const c = r && CURSOS[r.curso];
+    $("dia").textContent = r && r.fecha ? fechaLarga(r.fecha) + (c && fechaD(r.fecha) && DIAS_L[fechaD(r.fecha).getDay()] !== c.dia ? ` · ojo: ${c.n.toLowerCase()} es los ${c.dia}` : "") : "";
+    document.querySelectorAll("#indice a").forEach(a => a.classList.toggle("lleno", !!(r && a.dataset.sec && (r[a.dataset.sec] || "").trim())));
+  }
+  function renderFicha() {
+    if (!encontrados.length) encontrados = filtrar();
+    let r = actual && porId(actual);
+    if (!r) { r = encontrados[0] || db.registros[0]; if (db.registros.length) actual = r ? r.id : null; }
+    const vac = !r;
+    campos().forEach(el => {
+      el.disabled = vac || el.readOnly;
+      if (el.id === "f-ref") return;
+      if (document.activeElement === el) return;
+      if (el.type === "checkbox") el.checked = !!(r && r[el.dataset.f]);
+      else el.value = r ? r[el.dataset.f] || "" : "";
+    });
+    const i = r ? encontrados.findIndex(x => x.id === r.id) : -1;
+    $("pos").textContent = vac ? "Sin oratorios" : i >= 0 ? `${i + 1} de ${encontrados.length}` : "Fuera del filtro";
+    $("primero").disabled = $("anterior").disabled = i <= 0;
+    $("siguiente").disabled = $("ultimo").disabled = i < 0 || i >= encontrados.length - 1;
+    ["duplicar", "borrar", "pdfBtn"].forEach(b => $(b).disabled = vac);
+    pintarDerivados(r);
+    requestAnimationFrame(() => campos().forEach(crece));
+    if (r) document.title = `${r.n ? r.n + ". " : ""}${r.nombre || "Oratorio"} · Oratorios`;
+  }
+  document.getElementById("ficha").addEventListener("input", e => {
+    const el = e.target.closest("[data-f]"); if (!el || el.readOnly) return;
+    const r = porId(actual); if (!r) return;
+    r[el.dataset.f] = el.type === "checkbox" ? el.checked : el.value; r.mod = Date.now();
+    crece(el); pintarDerivados(r); cambio();
+  });
+  function ir(id) { actual = id; location.hash = "#ficha/" + encodeURIComponent(id); }
+  function mover(d) {
+    const i = encontrados.findIndex(x => x.id === actual);
+    const j = d === "first" ? 0 : d === "last" ? encontrados.length - 1 : i + d;
+    if (encontrados[j]) ir(encontrados[j].id);
+  }
+  $("primero").onclick = () => mover("first"); $("anterior").onclick = () => mover(-1);
+  $("siguiente").onclick = () => mover(1); $("ultimo").onclick = () => mover("last");
+  const nuevoId = () => "o" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  function nuevo(base) {
+    const r = { id: nuevoId(), mod: Date.now() };
+    for (const c of TEXTOS) r[c] = base ? (base[c] || "") : "";
+    for (const c of BOOLS) r[c] = false;
+    if (base) { r.fecha = ""; r.nombre = base.nombre; }
+    else {
+      r.curso = ui.curso || (porId(actual) || {}).curso || "";
+      const mismos = db.registros.filter(x => x.curso === r.curso).map(x => num(x.n));
+      r.n = String((mismos.length ? Math.max(...mismos) : 0) + 1).padStart(2, "0");
+      r.tiempo = "T.O.";
+    }
+    db.registros.push(r); cambio(); encontrados = filtrar();
+    if (!encontrados.some(x => x.id === r.id)) encontrados.push(r);
+    ir(r.id); setTimeout(() => $("f-nombre").focus(), 50);
+    if (base) toast("Duplicado: cambia el curso, el número y la fecha");
+  }
+  $("nuevo").onclick = () => nuevo(); $("nuevoL").onclick = () => nuevo();
+  $("duplicar").onclick = () => { const r = porId(actual); if (r) nuevo(r); };
+  $("borrar").onclick = () => {
+    const r = porId(actual); if (!r) return;
+    if (!confirm(`¿Borrar el oratorio «${r.nombre || "sin título"}»? No se puede deshacer.`)) return;
+    const i = encontrados.findIndex(x => x.id === r.id);
+    db.registros = db.registros.filter(x => x.id !== r.id); db.borrados[r.id] = Date.now();
+    cambio(); encontrados = filtrar();
+    const sig = encontrados[Math.min(Math.max(i, 0), encontrados.length - 1)];
+    if (sig) ir(sig.id); else location.hash = "#lista";
+    toast("Oratorio borrado");
+  };
+  $("pdfBtn").onclick = async () => {
+    const r = porId(actual); if (!r) return;
+    const b = $("pdfBtn"); b.disabled = true; b.textContent = "Preparando…";
+    try { await OratorioPDF.descargar(r); } catch (e) { console.error(e); toast("No se pudo crear el PDF"); }
+    b.disabled = false; b.textContent = "Folleto PDF";
+  };
+
+  /* ---------- Vistas ---------- */
+  function vista() {
+    const m = /^#ficha(?:\/(.+))?$/.exec(location.hash), enFicha = !!m;
+    if (m && m[1]) actual = decodeURIComponent(m[1]);
+    $("lista").classList.toggle("hidden", enFicha); $("ficha").classList.toggle("hidden", !enFicha);
+    $("tabLista").setAttribute("aria-pressed", !enFicha); $("tabFicha").setAttribute("aria-pressed", enFicha);
+    if (enFicha) renderFicha(); else { document.title = "Oratorios · Catequesis"; renderLista(); }
+  }
+  function render() { if ($("ficha").classList.contains("hidden")) renderLista(); else renderFicha(); }
+  window.addEventListener("hashchange", () => { vista(); window.scrollTo(0, 0); });
+  $("tabLista").onclick = () => { location.hash = "#lista"; };
+  $("tabFicha").onclick = () => { location.hash = "#ficha" + (actual ? "/" + encodeURIComponent(actual) : ""); };
+  $("filas").addEventListener("click", e => {
+    const cb = e.target.closest("[data-hecho]");
+    if (cb) { const r = porId(cb.dataset.hecho); if (r) { r.realizado = cb.checked; r.mod = Date.now(); cambio(); renderLista(); } return; }
+    const tr = e.target.closest("tr[data-id]"); if (tr) ir(tr.dataset.id);
+  });
+  document.querySelectorAll(".tabla th").forEach(th => th.onclick = () => {
+    if (ui.orden === th.dataset.k) ui.dir = -ui.dir; else { ui.orden = th.dataset.k; ui.dir = 1; }
+    store.set(KEY_UI, ui); renderLista();
+  });
+  document.querySelectorAll(".curso button").forEach(b => b.onclick = () => {
+    ui.curso = b.dataset.c; store.set(KEY_UI, ui);
+    history.replaceState(null, "", (ui.curso ? "?curso=" + ui.curso : location.pathname) + location.hash);
+    renderLista();
+  });
+  const filtros = { buscar: "q", fTiempo: "tiempo", fEstado: "estado", fDesde: "desde", fHasta: "hasta" };
+  for (const [id, k] of Object.entries(filtros)) { $(id).value = ui[k]; $(id).addEventListener("input", () => { ui[k] = $(id).value; store.set(KEY_UI, ui); renderLista(); }); }
+  $("limpiar").onclick = () => {
+    Object.assign(ui, { q: "", tiempo: "", estado: "", desde: "", hasta: "" });
+    for (const [id, k] of Object.entries(filtros)) $(id).value = ui[k];
+    store.set(KEY_UI, ui); renderLista(); $("buscar").focus();
+  };
+  document.addEventListener("keydown", e => {
+    if ($("ficha").classList.contains("hidden") || !(e.altKey || e.metaKey)) return;
+    if (e.key === "ArrowLeft") { e.preventDefault(); mover(-1); }
+    if (e.key === "ArrowRight") { e.preventDefault(); mover(1); }
+  });
+  window.addEventListener("resize", () => campos().forEach(crece));
+
+  /* ---------- Ajustes ---------- */
+  const dlg = $("cfg"), cMsg = $("cMsg");
+  $("cfgBtn").onclick = () => {
+    $("cOwner").value = cfg.owner; $("cRepo").value = cfg.repo; $("cToken").value = cfg.token;
+    cMsg.className = "msg"; cMsg.textContent = configurado() ? "Configurado." : "Sin token: solo lectura."; dlg.showModal();
+  };
+  $("cCerrar").onclick = () => dlg.close();
+  const guardarCfg = () => store.set(KEY_CFG, Object.assign(store.get(KEY_CFG, {}), { owner: cfg.owner, repo: cfg.repo, token: cfg.token }));
+  $("cGuardar").onclick = async () => {
+    cfg = { owner: $("cOwner").value.trim(), repo: $("cRepo").value.trim(), token: $("cToken").value.trim() };
+    guardarCfg(); cMsg.className = "msg"; cMsg.textContent = "Sincronizando…";
+    await sync();
+    const ok = syncEl.classList.contains("ok");
+    cMsg.className = "msg " + (ok ? "ok" : "err"); cMsg.textContent = syncEl.title;
+  };
+  $("cOlvidar").onclick = () => { cfg.token = ""; guardarCfg(); $("cToken").value = ""; cMsg.className = "msg"; cMsg.textContent = "Token borrado de este navegador."; sync(); };
+  function descargar(nombre, tipo, txt) {
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([txt], { type: tipo })); a.download = nombre;
+    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  }
+  const hoy = () => new Date().toISOString().slice(0, 10);
+  $("expJSON").onclick = () => descargar(`oratorios-${hoy()}.json`, "application/json", JSON.stringify(db, null, 1));
+  $("expCSV").onclick = () => {
+    const cols = TEXTOS.concat(BOOLS), q = v => '"' + String(v ?? "").replace(/"/g, '""') + '"';
+    const csv = [cols.map(q).join(";")].concat(filtrar().map(r => cols.map(c => q(r[c])).join(";"))).join("\r\n");
+    descargar(`oratorios-${hoy()}.csv`, "text/csv;charset=utf-8", "﻿" + csv);
+  };
+  $("impJSON").onchange = async e => {
+    const f = e.target.files[0]; if (!f) return;
+    try { const d = limpiar(JSON.parse(await f.text())); const t = Date.now(); d.registros.forEach(r => r.mod = Math.max(r.mod, t)); db = unir(db, d); cambio(); render(); toast(`Importados ${d.registros.length} oratorios`); }
+    catch (_) { toast("El archivo no es un JSON válido"); }
+    e.target.value = "";
+  };
+  $("temaBtn").onclick = () => {
+    const t = document.documentElement.getAttribute("data-tema") === "claro" ? "oscuro" : "claro";
+    document.documentElement.setAttribute("data-tema", t);
+    try { localStorage.setItem("catequesis-tema", t); } catch (_) {}
+  };
+
+  /* ---------- Arranque ---------- */
+  if (!location.hash) history.replaceState(null, "", location.pathname + location.search + "#lista");
+  vista(); sync();
+  window.addEventListener("online", sync);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && !sincronizando) sync(); });
+})();
+</script>
+</body>
+</html>

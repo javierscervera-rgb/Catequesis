@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#171310">
+<title>Sesión de catequesis</title>
+<meta property="og:title" content="Sesión de catequesis">
+<meta property="og:description" content="Texto, preguntas y oración de la sesión, para leer en el móvil.">
+<style>
+  :root {
+    --bg: #171310; --card: #201D18; --accent: #CD8B75; --accent2: #D88972; --btn2: #292420;
+    --tx: #F0E8DC; --tx2: #AA9D8F; --bd: #37312B; --oro: #D9B36A;
+    --fs: 21px; color-scheme: dark;
+  }
+  html[data-tema="claro"] {
+    --bg: #F6F0E7; --card: #FFFBF5; --accent: #B5604A; --accent2: #A4533F; --btn2: #EFE6DA;
+    --tx: #2A241D; --tx2: #7A6E60; --bd: #DDD2C3; --oro: #8E6A12; color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--bg); color: var(--tx); font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-size: var(--fs); line-height: 1.5; -webkit-text-size-adjust: 100%; }
+  button, input { font: inherit; color: inherit; }
+  .hidden { display: none !important; }
+
+  #bar { position: sticky; top: 0; z-index: 10; display: flex; gap: 6px; align-items: center; padding: 8px 10px; padding-top: max(8px, env(safe-area-inset-top)); background: var(--bg); border-bottom: 1px solid var(--bd); font-size: 16px; }
+  #bar .sp { flex: 1; }
+  .ib { height: 40px; min-width: 40px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--bd); background: var(--btn2); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; color: var(--tx); font-size: 16px; white-space: nowrap; }
+  .ib.pri { background: var(--accent); border-color: var(--accent); color: var(--bg); font-weight: 600; }
+  html[data-tema="claro"] .ib.pri { color: #fff; }
+
+  main { max-width: 760px; margin: 0 auto; padding: 18px 16px 60px; padding-bottom: max(60px, env(safe-area-inset-bottom)); }
+  .cab { margin: 4px 0 22px; }
+  .chip { display: inline-block; font-size: .62em; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent2); border: 1px solid var(--accent2); border-radius: 99px; padding: 2px 10px; }
+  .serie { font-size: .7em; color: var(--tx2); margin-top: 8px; }
+  h1 { font-size: 1.55em; line-height: 1.2; margin: 6px 0 4px; }
+  h1 .n { color: var(--accent2); margin-right: .25em; }
+  .pasaje { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; font-style: italic; color: var(--oro); font-size: 1.05em; }
+  .fecha { font-size: .7em; color: var(--tx2); }
+
+  section { background: var(--card); border: 1px solid var(--bd); border-radius: 16px; padding: 14px 18px 16px; margin: 0 0 16px; }
+  section h2 { margin: 0 0 6px; font-size: .62em; letter-spacing: .1em; text-transform: uppercase; color: var(--tx2); font-weight: 700; }
+  section p { margin: 0; white-space: pre-wrap; }
+  .biblia p { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; font-size: 1.06em; line-height: 1.6; }
+  .biblia .ref { font-style: italic; color: var(--oro); margin-bottom: 8px; }
+  ol { margin: 0; padding-left: 1.3em; } ol li { margin: 0 0 .55em; } ol li::marker { color: var(--accent2); font-weight: 700; }
+  .oracion p { font-style: italic; }
+  .oracion p + p { margin-top: .6em; }
+  .oracion .saludo { font-style: normal; color: var(--oro); font-family: "Iowan Old Style", Palatino, Georgia, serif; margin-bottom: .3em; }
+
+  .pie { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 26px; font-size: 16px; }
+  .pie a { display: block; padding: 12px 14px; border: 1px solid var(--bd); border-radius: 12px; background: var(--card); color: var(--tx); text-decoration: none; min-height: 64px; }
+  .pie a small { display: block; color: var(--tx2); font-size: 13px; }
+  .pie .sig { text-align: right; grid-column: 2; }
+  .acciones { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+  .acciones .ib { height: 48px; padding: 0 18px; flex: 1 1 auto; }
+
+  /* Índice */
+  #buscar { width: 100%; height: 48px; padding: 0 14px; border-radius: 12px; border: 1px solid var(--bd); background: var(--card); font-size: 18px; margin-bottom: 14px; }
+  .grupo h2 { font-size: .7em; color: var(--accent2); text-transform: uppercase; letter-spacing: .06em; margin: 22px 0 6px; }
+  .grupo h3 { font-size: .62em; color: var(--tx2); margin: 14px 0 6px; font-weight: 600; }
+  .item { display: flex; gap: 10px; padding: 11px 12px; border: 1px solid var(--bd); background: var(--card); border-radius: 12px; margin-bottom: 8px; color: var(--tx); text-decoration: none; font-size: .85em; line-height: 1.3; }
+  .item b { color: var(--accent2); min-width: 1.6em; text-align: right; }
+  .item small { display: block; color: var(--tx2); font-size: .8em; margin-top: 2px; }
+  .msg { color: var(--tx2); text-align: center; padding: 40px 10px; font-size: 18px; }
+  #toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--accent); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-weight: 600; font-size: 16px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 20; }
+  #toast.on { opacity: 1; }
+</style>
+<script>
+  (function () {
+    var t = null, fs = null;
+    try { t = localStorage.getItem("catequesis-tema"); fs = localStorage.getItem("catequesis-letra"); } catch (e) {}
+    if (t !== "claro" && t !== "oscuro") t = matchMedia("(prefers-color-scheme: light)").matches ? "claro" : "oscuro";
+    document.documentElement.setAttribute("data-tema", t);
+    if (fs) document.documentElement.style.setProperty("--fs", fs + "px");
+  })();
+</script>
+</head>
+<body>
+<header id="bar">
+  <a class="ib" id="indice" href="?" title="Todas las sesiones" aria-label="Todas las sesiones">☰</a>
+  <div class="sp"></div>
+  <button class="ib" id="menos" title="Letra más pequeña" aria-label="Letra más pequeña">A−</button>
+  <button class="ib" id="mas" title="Letra más grande" aria-label="Letra más grande">A+</button>
+  <button class="ib" id="tema" title="Modo día / noche" aria-label="Modo día / noche">◐</button>
+  <button class="ib pri" id="compartir" title="Compartir">Compartir</button>
+</header>
+<main id="main"><div class="msg">Cargando…</div></main>
+
+<script src="catequesis-pdf.js"></script>
+<script>
+(() => {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const norm = s => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  const ROM = { I: 1, V: 5, X: 10, L: 50 };
+  const romano = t => [...t].reduce((n, c, i, a) => n + (ROM[c] < (ROM[a[i + 1]] || 0) ? -ROM[c] : ROM[c]), 0);
+  const numSerie = s => { s = s || ""; let m = /^\s*(\d+)/.exec(s); if (m) return +m[1]; m = /^\s*\S+\s+([IVXL]+)\b/.exec(s); return m ? romano(m[1]) : 9999; };
+  const orden = (a, b) => a.nivel.localeCompare(b.nivel, "es") || numSerie(a.serie) - numSerie(b.serie) || (parseInt(a.sesion) || 0) - (parseInt(b.sesion) || 0);
+  const fechaES = f => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(f || ""); return m ? `${m[3]}/${m[2]}/${m[1]}` : ""; };
+  let toastT;
+  function toast(m) {
+    let el = $("toast"); if (!el) { el = document.createElement("div"); el.id = "toast"; document.body.appendChild(el); }
+    el.textContent = m; el.classList.add("on"); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove("on"), 2200);
+  }
+
+  /* Datos: el archivo publicado y, si este navegador es el de quien edita, sus cambios más recientes */
+  async function cargar() {
+    let regs = [];
+    try { const r = await fetch("catequesis-parroquia.json?t=" + Date.now(), { cache: "no-store" }); if (r.ok) regs = (await r.json()).registros || []; } catch (_) {}
+    try {
+      const loc = JSON.parse(localStorage.getItem("catequesis-db") || "null");
+      if (loc && loc.registros) {
+        const m = new Map(regs.map(r => [String(r.id), r]));
+        for (const r of loc.registros) { const p = m.get(String(r.id)); if (!p || (+r.mod || 0) > (+p.mod || 0)) m.set(String(r.id), r); }
+        for (const id in (loc.borrados || {})) { const p = m.get(id); if (p && loc.borrados[id] >= (+p.mod || 0)) m.delete(id); }
+        regs = [...m.values()];
+      }
+    } catch (_) {}
+    return regs.map(r => Object.assign({}, r, { id: String(r.id), nivel: r.nivel || "", serie: r.serie || "" })).sort(orden);
+  }
+  const preguntas = r => (window.CatequesisPDF ? CatequesisPDF.preguntas(r) : [r.pregunta1, r.pregunta2, r.pregunta3]).filter(q => q && q.trim());
+  const enlace = id => location.origin + location.pathname + "?s=" + encodeURIComponent(id);
+
+  function sesion(regs, r) {
+    document.title = `${r.sesion ? r.sesion + ". " : ""}${r.titulo || "Sesión"} · ${r.nivel || "Catequesis"}`;
+    const bloque = (titulo, cuerpo, clase) => cuerpo ? `<section class="${clase || ""}"><h2>${titulo}</h2>${cuerpo}</section>` : "";
+    const p = t => (t || "").trim() ? `<p>${esc(t.trim())}</p>` : "";
+    const qs = preguntas(r);
+    const or = [r.oracion1, r.oracion2].filter(t => t && t.trim());
+    const mismos = regs.filter(x => x.nivel === r.nivel), i = mismos.findIndex(x => x.id === r.id);
+    const ant = mismos[i - 1], sig = mismos[i + 1];
+    const tarjeta = (x, cls, txt) => x ? `<a class="${cls}" href="?s=${encodeURIComponent(x.id)}"><small>${txt}</small>${esc((x.sesion ? x.sesion + ". " : "") + x.titulo)}</a>` : "";
+    $("main").innerHTML = `
+      <div class="cab">
+        ${r.nivel ? `<span class="chip">${esc(r.nivel)}</span>` : ""}
+        ${r.serie ? `<div class="serie">${esc(r.serie)}</div>` : ""}
+        <h1>${r.sesion ? `<span class="n">${esc(r.sesion)}</span>` : ""}${esc(r.titulo || "Sesión sin título")}</h1>
+        ${r.pasaje ? `<div class="pasaje">${esc(r.pasaje)}</div>` : ""}
+        ${r.fecha ? `<div class="fecha">${fechaES(r.fecha)}</div>` : ""}
+      </div>
+      ${bloque("Descripción", p(r.descripcion))}
+      ${bloque("Objetivo", p(r.objetivo))}
+      ${bloque("Resumen", p(r.resumen))}
+      ${bloque("Texto", r.texto && r.texto.trim() ? (r.pasaje ? `<p class="ref">${esc(r.pasaje)}</p>` : "") + p(r.texto) : "", "biblia")}
+      ${bloque("Explicación", p(r.explicacion))}
+      ${bloque("Dinámica", p(r.dinamica))}
+      ${bloque("Preguntas", qs.length ? `<ol>${qs.map(q => `<li>${esc(q)}</li>`).join("")}</ol>` : "")}
+      ${bloque("Oración", or.length ? `<p class="saludo">Querido Jesús:</p>` + or.map(t => p(t)).join("") : "", "oracion")}
+      <div class="acciones">
+        <button class="ib" id="pdf">Ficha en PDF</button>
+        <a class="ib" id="wa" href="https://wa.me/?text=${encodeURIComponent(`${r.sesion ? r.sesion + ". " : ""}${r.titulo} (${r.nivel})\n${enlace(r.id)}`)}" target="_blank" rel="noopener">WhatsApp</a>
+      </div>
+      <div class="pie">${tarjeta(ant, "ant", "← Anterior")}${tarjeta(sig, "sig", "Siguiente →")}</div>`;
+    $("pdf").onclick = async () => {
+      const b = $("pdf"); b.disabled = true; b.textContent = "Preparando…";
+      try { await CatequesisPDF.descargar(r); } catch (e) { toast("No se pudo crear el PDF"); }
+      b.disabled = false; b.textContent = "Ficha en PDF";
+    };
+    $("compartir").onclick = () => compartir(document.title, enlace(r.id));
+    $("compartir").classList.remove("hidden");
+  }
+
+  function indice(regs) {
+    document.title = "Sesiones de catequesis";
+    $("compartir").onclick = () => compartir("Sesiones de catequesis", location.origin + location.pathname);
+    $("main").innerHTML = `<input type="search" id="buscar" placeholder="Buscar sesión…" autocomplete="off"><div id="lista"></div>`;
+    const pintar = () => {
+      const ps = norm($("buscar").value).split(/\s+/).filter(Boolean);
+      const vis = regs.filter(r => !ps.length || ps.every(p => norm([r.nivel, r.serie, r.sesion, r.titulo, r.pasaje, r.resumen].join(" ")).includes(p)));
+      let html = "", nivel = null, serie = null;
+      for (const r of vis) {
+        if (r.nivel !== nivel) { html += `${nivel !== null ? "</div>" : ""}<div class="grupo"><h2>${esc(r.nivel || "Sin nivel")}</h2>`; nivel = r.nivel; serie = null; }
+        if (r.serie !== serie) { html += `<h3>${esc(r.serie)}</h3>`; serie = r.serie; }
+        html += `<a class="item" href="?s=${encodeURIComponent(r.id)}"><b>${esc(r.sesion)}</b><span>${esc(r.titulo || "Sin título")}${r.pasaje ? `<small>${esc(r.pasaje)}</small>` : ""}</span></a>`;
+      }
+      $("lista").innerHTML = vis.length ? html + "</div>" : `<div class="msg">No hay sesiones que coincidan.</div>`;
+    };
+    $("buscar").addEventListener("input", pintar); pintar();
+  }
+
+  async function compartir(titulo, url) {
+    if (navigator.share) { try { await navigator.share({ title: titulo, url }); return; } catch (e) { if (e.name === "AbortError") return; } }
+    try { await navigator.clipboard.writeText(url); toast("Enlace copiado"); } catch (_) { prompt("Copia el enlace:", url); }
+  }
+
+  /* Tamaño de letra y tema */
+  const fsAhora = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--fs")) || 21;
+  const fsPoner = v => { v = Math.max(15, Math.min(34, v)); document.documentElement.style.setProperty("--fs", v + "px"); try { localStorage.setItem("catequesis-letra", v); } catch (_) {} };
+  $("menos").onclick = () => fsPoner(fsAhora() - 2);
+  $("mas").onclick = () => fsPoner(fsAhora() + 2);
+  $("tema").onclick = () => {
+    const t = document.documentElement.getAttribute("data-tema") === "claro" ? "oscuro" : "claro";
+    document.documentElement.setAttribute("data-tema", t);
+    document.querySelector('meta[name="theme-color"]').content = t === "claro" ? "#F6F0E7" : "#171310";
+    try { localStorage.setItem("catequesis-tema", t); } catch (_) {}
+  };
+
+  (async () => {
+    const regs = await cargar();
+    const id = new URLSearchParams(location.search).get("s");
+    if (!regs.length) { $("main").innerHTML = `<div class="msg">No se han podido cargar las sesiones.</div>`; return; }
+    if (id) {
+      const r = regs.find(x => x.id === id);
+      if (r) { sesion(regs, r); return; }
+      $("main").innerHTML = `<div class="msg">No se encuentra esa sesión.<br><a href="?" style="color:var(--accent2)">Ver todas</a></div>`; return;
+    }
+    $("indice").classList.add("hidden");
+    indice(regs);
+  })();
+})();
+</script>
+</body>
+</html>

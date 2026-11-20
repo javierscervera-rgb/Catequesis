@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#171310">
+<title>Catequesis · Parroquia</title>
+<style>
+  :root {
+    --bg: #171310; --card: #201D18; --accent: #CD8B75; --btn2: #292420;
+    --tx: #F0E8DC; --tx2: #AA9D8F; --bd: #37312B; --accent2: #D88972;
+    --danger: #E5806F; --ok: #9DB58A; --barh: 64px;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--tx); -webkit-text-size-adjust: 100%; line-height: 1.45; }
+  .hidden { display: none !important; }
+  button, input, textarea, select { font: inherit; color: inherit; }
+
+  /* ---------- Barra superior ---------- */
+  #bar { position: sticky; top: 0; z-index: 30; min-height: var(--barh); display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--bg); border-bottom: 1px solid var(--bd); }
+  #bar h1 { margin: 0; font-size: 1.2rem; color: var(--accent2); font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #bar .sp { flex: 1; }
+  .tabs { display: flex; border: 1px solid var(--bd); border-radius: 10px; overflow: hidden; flex: none; }
+  .tabs button { border: 0; background: var(--btn2); padding: 0 14px; height: 38px; cursor: pointer; }
+  .tabs button[aria-pressed="true"] { background: var(--accent); color: var(--bg); font-weight: 600; }
+  #sync { flex: none; display: flex; align-items: center; gap: 6px; font-size: .8rem; color: var(--tx2); max-width: 30vw; }
+  #sync .dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--tx2); }
+  #sync.ok .dot { background: var(--ok); }
+  #sync.busy .dot { background: var(--accent); animation: lat 1s ease-in-out infinite; }
+  #sync.err .dot { background: var(--danger); }
+  #sync span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  @keyframes lat { 50% { opacity: .3; } }
+  .ibtn { flex: none; width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--bd); background: var(--btn2); font-size: 1.1rem; cursor: pointer; display: grid; place-items: center; }
+
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--bd); background: var(--btn2); font-size: .93rem; cursor: pointer; white-space: nowrap; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--bg); font-weight: 600; }
+  .btn.danger { color: var(--danger); border-color: rgba(229,128,111,.45); }
+  .btn:disabled { opacity: .4; cursor: default; }
+  a.btn { color: inherit; text-decoration: none; }
+
+  /* ---------- Lista ---------- */
+  #lista { max-width: 1300px; margin: 0 auto; padding: 16px 16px 48px; }
+  .tools { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; align-items: center; }
+  .tools input, .tools select { height: 40px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--bd); background: var(--card); min-width: 0; }
+  .tools input[type=search] { flex: 1 1 260px; }
+  .tools label.f { display: flex; align-items: center; gap: 6px; font-size: .85rem; color: var(--tx2); }
+  #cuenta { color: var(--tx2); font-size: .9rem; margin: 4px 2px 10px; }
+  .tabla { width: 100%; border-collapse: collapse; font-size: .93rem; }
+  .tabla th { text-align: left; font-weight: 600; color: var(--tx2); font-size: .8rem; text-transform: uppercase; letter-spacing: .03em; padding: 8px; border-bottom: 1px solid var(--bd); cursor: pointer; user-select: none; white-space: nowrap; position: sticky; top: var(--barh); background: var(--bg); }
+  .tabla th[aria-sort="ascending"]::after { content: " ▲"; color: var(--accent); }
+  .tabla th[aria-sort="descending"]::after { content: " ▼"; color: var(--accent); }
+  .tabla td { padding: 9px 8px; border-bottom: 1px solid var(--bd); vertical-align: top; }
+  .tabla tbody tr { cursor: pointer; }
+  .tabla tbody tr:hover { background: var(--card); }
+  .tabla .c-pasaje { white-space: nowrap; }
+  .tabla .num { text-align: right; width: 3.5em; color: var(--accent2); font-weight: 600; }
+  .tabla .tit { font-weight: 600; }
+  .tabla .sub { color: var(--tx2); font-size: .83rem; margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .chip { display: inline-block; padding: 1px 8px; border-radius: 99px; background: var(--btn2); border: 1px solid var(--bd); font-size: .78rem; white-space: nowrap; }
+  .estado { display: flex; gap: 3px; }
+  .estado i { width: 9px; height: 9px; border-radius: 50%; background: var(--bd); display: inline-block; }
+  .estado i.si { background: var(--ok); }
+  mark { background: rgba(205,139,117,.35); color: inherit; border-radius: 3px; }
+  .vacio { padding: 40px; text-align: center; color: var(--tx2); }
+  @media (max-width: 760px) { .tabla .c-serie, .tabla .c-pasaje, .tabla .c-est { display: none; } }
+
+  /* ---------- Ficha (como el FileMaker) ---------- */
+  #ficha { max-width: 1300px; margin: 0 auto; padding: 14px 16px 48px; }
+  .nav { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+  .nav .pos { color: var(--tx2); font-size: .9rem; padding: 0 6px; }
+  .nav .sp { flex: 1; }
+  .cab { background: linear-gradient(180deg, rgba(205,139,117,.22), rgba(205,139,117,.08)); border: 1px solid var(--bd); border-radius: 14px; padding: 12px 16px; margin-bottom: 14px; display: grid; grid-template-columns: 1fr auto; gap: 6px 16px; }
+  .cab input { background: transparent; border: 1px dashed transparent; border-radius: 8px; padding: 2px 6px; width: 100%; }
+  .cab input:hover, .cab input:focus { border-color: var(--bd); outline: none; background: rgba(0,0,0,.12); }
+  #f-serie { font-size: clamp(1.2rem, 2.6vw, 1.9rem); font-weight: 800; text-transform: uppercase; letter-spacing: .01em; }
+  .cab .linea { display: flex; gap: 6px; align-items: baseline; padding-left: 26px; }
+  #f-sesion { width: 3.2em; font-size: clamp(1.1rem, 2.2vw, 1.6rem); font-weight: 700; color: var(--accent2); text-align: right; }
+  #f-titulo { font-size: clamp(1.1rem, 2.2vw, 1.6rem); font-weight: 700; color: var(--accent2); }
+  .cab .meta { grid-row: 1 / span 2; grid-column: 2; display: flex; flex-direction: column; gap: 6px; justify-content: center; min-width: 190px; }
+  .cab .meta label { display: grid; grid-template-columns: 4.5em 1fr; align-items: center; font-size: .78rem; color: var(--tx2); text-transform: uppercase; letter-spacing: .04em; }
+  .cab .meta input { border: 1px solid var(--bd); background: var(--card); height: 36px; font-size: .95rem; color: var(--tx); text-transform: none; }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+  .izq { display: grid; gap: 12px; }
+  .dos { display: grid; grid-template-columns: 1fr 2.2fr; gap: 12px; }
+  fieldset { margin: 0; border: 1px solid var(--bd); border-radius: 12px; padding: 6px 12px 12px; background: var(--card); box-shadow: 0 2px 6px rgba(0,0,0,.25); min-width: 0; }
+  legend { font-size: .78rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--tx2); padding: 0 6px; }
+  fieldset textarea, fieldset input { width: 100%; display: block; border: 1px solid var(--bd); border-radius: 8px; background: var(--bg); padding: 8px 10px; resize: none; overflow: hidden; line-height: 1.4; }
+  fieldset textarea + textarea, fieldset input + input { margin-top: 8px; }
+  fieldset textarea:focus, fieldset input:focus, .cab .meta input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  #fs-texto { position: sticky; top: calc(var(--barh) + 10px); }
+  #f-texto { min-height: 70vh; max-height: calc(100vh - var(--barh) - 70px); overflow: auto; resize: vertical; font-size: 1rem; line-height: 1.55; }
+  @media (max-width: 900px) {
+    .cols { grid-template-columns: 1fr; }
+    #fs-texto { position: static; }
+    #f-texto { min-height: 40vh; max-height: none; }
+    .cab { grid-template-columns: 1fr; }
+    .cab .meta { grid-row: auto; grid-column: auto; flex-direction: row; flex-wrap: wrap; }
+    .cab .linea { padding-left: 0; }
+  }
+  @media (max-width: 520px) {
+    .dos { grid-template-columns: 1fr; }
+    #f-serie { font-size: 1rem; }
+    .cab .meta label { grid-template-columns: 4.5em 1fr; width: 100%; }
+  }
+  @media (max-width: 640px) {
+    #bar { gap: 6px; padding: 8px; }
+    #sync span { display: none; }
+    .tabs button { padding: 0 10px; }
+    .ibtn { width: 36px; height: 36px; }
+  }
+
+  /* ---------- Diálogo de ajustes ---------- */
+  dialog { border: 1px solid var(--bd); border-radius: 14px; background: var(--card); color: var(--tx); width: min(520px, 94vw); padding: 18px; }
+  dialog::backdrop { background: rgba(0,0,0,.55); }
+  dialog h2 { margin: 0 0 10px; font-size: 1.1rem; color: var(--accent2); }
+  .fld { display: grid; gap: 4px; margin-bottom: 10px; }
+  .fld label { font-size: .8rem; color: var(--tx2); }
+  .fld input { height: 40px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--bd); background: var(--bg); }
+  .nota { font-size: .84rem; color: var(--tx2); margin: 0 0 12px; }
+  .acciones { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; margin-top: 8px; }
+  .acciones .izqb { margin-right: auto; }
+  .msg { font-size: .85rem; min-height: 1.2em; color: var(--tx2); }
+  .msg.err { color: var(--danger); } .msg.ok { color: var(--ok); }
+  #toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--accent); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-weight: 600; z-index: 99; opacity: 0; transition: opacity .2s; pointer-events: none; }
+  #toast.on { opacity: 1; }
+
+  /* ---------- Impresión de la ficha ---------- */
+  @media print {
+    :root { --bg: #fff; --card: #fff; --tx: #000; --tx2: #444; --bd: #999; --accent2: #000; }
+    #bar, .nav, #lista, #f-texto-tools { display: none !important; }
+    #ficha { padding: 0; max-width: none; }
+    fieldset { box-shadow: none; break-inside: avoid; }
+    #fs-texto { position: static; }
+    #f-texto { min-height: 0; max-height: none; overflow: visible; }
+    .cab { background: #eef5fa; }
+    textarea, input { border-color: #bbb !important; }
+  }
+</style>
+<style>
+  html[data-tema="claro"] {
+    color-scheme: light;
+    --bg: #F6F0E7; --card: #FFFBF5; --btn2: #EFE6DA; --tx: #2A241D; --tx2: #7A6E60;
+    --bd: #DDD2C3; --accent: #B5604A; --accent2: #A4533F; --danger: #B5483A; --ok: #4F7A3A;
+  }
+  html[data-tema="claro"] .tabs button[aria-pressed="true"], html[data-tema="claro"] .btn.primary, html[data-tema="claro"] #toast { color: #fff; }
+  html[data-tema="claro"] fieldset { box-shadow: 0 1px 4px rgba(42,36,29,.12); }
+  html[data-tema="claro"] dialog::backdrop { background: rgba(42,36,29,.45); }
+</style>
+<script>
+  /* Modo día / noche: se recuerda en este navegador; por defecto, el del sistema */
+  (function () {
+    var t = null; try { t = localStorage.getItem("catequesis-tema"); } catch (e) {}
+    if (t !== "claro" && t !== "oscuro") t = matchMedia("(prefers-color-scheme: light)").matches ? "claro" : "oscuro";
+    document.documentElement.setAttribute("data-tema", t);
+  })();
+</script>
+</head>
+<body>
+
+<header id="bar">
+  <a class="ibtn" href="index.html" title="Inicio" aria-label="Inicio" style="text-decoration:none;color:inherit">⌂</a>
+  <h1>Catequesis</h1>
+  <div class="tabs" role="group" aria-label="Vista">
+    <button id="tabLista" aria-pressed="true">Lista</button>
+    <button id="tabFicha" aria-pressed="false">Ficha</button>
+  </div>
+  <div class="sp"></div>
+  <div id="sync"><i class="dot"></i><span>Cargando…</span></div>
+  <button class="ibtn" id="temaBtn" title="Modo día / noche" aria-label="Modo día / noche">◐</button>
+  <button class="ibtn" id="cfgBtn" title="Ajustes y copias" aria-label="Ajustes y copias">⚙︎</button>
+</header>
+
+<!-- ===================== LISTA ===================== -->
+<main id="lista">
+  <div class="tools">
+    <input type="search" id="buscar" placeholder="Buscar en todo: título, pasaje, texto, dinámica, preguntas…" autocomplete="off">
+    <select id="fNivel" aria-label="Nivel"></select>
+    <select id="fSerie" aria-label="Serie"></select>
+    <select id="fEstado" aria-label="Estado">
+      <option value="">Cualquier estado</option>
+      <option value="completa">Completas</option>
+      <option value="incompleta">Incompletas</option>
+      <option value="sintexto">Sin texto bíblico</option>
+      <option value="conFecha">Con fecha</option>
+      <option value="sinFecha">Sin fecha</option>
+    </select>
+    <label class="f">Desde <input type="date" id="fDesde"></label>
+    <label class="f">Hasta <input type="date" id="fHasta"></label>
+    <button class="btn" id="limpiar">Limpiar</button>
+    <button class="btn primary" id="nuevoL">＋ Nueva sesión</button>
+  </div>
+  <div id="cuenta"></div>
+  <table class="tabla">
+    <thead><tr>
+      <th data-k="nivel">Nivel</th>
+      <th data-k="serie" class="c-serie">Serie</th>
+      <th data-k="sesion" class="num">Nº</th>
+      <th data-k="titulo">Título</th>
+      <th data-k="pasaje" class="c-pasaje">Pasaje</th>
+      <th data-k="fecha">Fecha</th>
+      <th data-k="completo" class="c-est" title="Descripción · Objetivo · Texto · Preguntas · Oración">Estado</th>
+    </tr></thead>
+    <tbody id="filas"></tbody>
+  </table>
+  <div id="sinRes" class="vacio hidden">No hay sesiones que coincidan con la búsqueda.</div>
+</main>
+
+<!-- ===================== FICHA ===================== -->
+<main id="ficha" class="hidden">
+  <div class="nav">
+    <button class="btn" id="primero" title="Primera">⏮</button>
+    <button class="btn" id="anterior" title="Anterior">◀</button>
+    <span class="pos" id="pos"></span>
+    <button class="btn" id="siguiente" title="Siguiente">▶</button>
+    <button class="btn" id="ultimo" title="Última">⏭</button>
+    <div class="sp"></div>
+    <button class="btn" id="nuevo">＋ Nueva</button>
+    <button class="btn" id="duplicar">Duplicar</button>
+    <button class="btn" id="pdfBtn" title="Ficha de Lectio Divina en PDF">PDF</button>
+    <a class="btn" id="verBtn" target="_blank" rel="noopener" title="Presentación para el móvil">Ver en móvil</a>
+    <a class="btn" id="waBtn" target="_blank" rel="noopener" title="Enviar el enlace por WhatsApp">WhatsApp</a>
+    <button class="btn" id="imprimir">Imprimir</button>
+    <button class="btn danger" id="borrar">Borrar</button>
+  </div>
+
+  <div class="cab">
+    <input id="f-serie" data-f="serie" list="dlSeries" placeholder="SERIE" aria-label="Serie">
+    <div class="linea">
+      <input id="f-sesion" data-f="sesion" inputmode="numeric" placeholder="Nº" aria-label="Nº de sesión">
+      <input id="f-titulo" data-f="titulo" placeholder="Título de la sesión" aria-label="Título">
+    </div>
+    <div class="meta">
+      <label>Nivel <input id="f-nivel" data-f="nivel" list="dlNiveles" placeholder="Nivel"></label>
+      <label>Fecha <input id="f-fecha" data-f="fecha" type="date"></label>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div class="izq">
+      <fieldset><legend>Descripción</legend><textarea data-f="descripcion" rows="3"></textarea></fieldset>
+      <div class="dos">
+        <fieldset><legend>Pasaje</legend><textarea data-f="pasaje" rows="2"></textarea></fieldset>
+        <fieldset><legend>Resumen</legend><textarea data-f="resumen" rows="2"></textarea></fieldset>
+      </div>
+      <fieldset><legend>Objetivo</legend><textarea data-f="objetivo" rows="2"></textarea></fieldset>
+      <fieldset><legend>Explicación</legend><textarea data-f="explicacion" rows="2"></textarea></fieldset>
+      <fieldset><legend>Dinámica</legend><textarea data-f="dinamica" rows="2"></textarea></fieldset>
+      <fieldset><legend>Preguntas</legend>
+        <textarea data-f="pregunta1" rows="1" placeholder="1."></textarea>
+        <textarea data-f="pregunta2" rows="1" placeholder="2."></textarea>
+        <textarea data-f="pregunta3" rows="1" placeholder="3."></textarea>
+      </fieldset>
+      <fieldset><legend>Oración</legend>
+        <textarea data-f="oracion1" rows="1"></textarea>
+        <textarea data-f="oracion2" rows="1"></textarea>
+      </fieldset>
+    </div>
+    <fieldset id="fs-texto"><legend>Texto</legend><textarea id="f-texto" data-f="texto" placeholder="Texto bíblico de la sesión"></textarea></fieldset>
+  </div>
+</main>
+
+<datalist id="dlSeries"></datalist>
+<datalist id="dlNiveles"></datalist>
+
+<!-- ===================== AJUSTES ===================== -->
+<dialog id="cfg">
+  <h2>Guardar en GitHub</h2>
+  <p class="nota">Las sesiones se guardan en un archivo JSON del repositorio. Sin token, la página muestra los datos publicados y lo que edites se queda solo en este navegador. Con un token <i>fine-grained</i> con permiso <i>Contents: Read and write</i> sobre ese repositorio, los cambios se suben solos. El token se queda solo en este navegador.</p>
+  <div class="fld"><label for="cOwner">Usuario</label><input id="cOwner" autocapitalize="off" spellcheck="false"></div>
+  <div class="fld"><label for="cRepo">Repositorio</label><input id="cRepo" autocapitalize="off" spellcheck="false"></div>
+  <div class="fld"><label for="cPath">Archivo</label><input id="cPath" autocapitalize="off" spellcheck="false"></div>
+  <div class="fld"><label for="cToken">Token</label><input id="cToken" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="github_pat_…"></div>
+  <div class="msg" id="cMsg"></div>
+  <div class="acciones">
+    <button class="btn danger izqb" id="cOlvidar">Olvidar token</button>
+    <button class="btn" id="cCerrar">Cerrar</button>
+    <button class="btn primary" id="cGuardar">Guardar y sincronizar</button>
+  </div>
+  <h2 style="margin-top:18px">Copias</h2>
+  <div class="acciones" style="justify-content:flex-start">
+    <button class="btn" id="expJSON">Descargar JSON</button>
+    <button class="btn" id="expCSV">Descargar CSV (lista filtrada)</button>
+    <label class="btn">Importar JSON<input type="file" id="impJSON" accept=".json,application/json" hidden></label>
+  </div>
+</dialog>
+
+<script src="catequesis-pdf.js"></script>
+<script>
+(() => {
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const store = {
+    get(k, def) { try { const v = localStorage.getItem(k); return v == null ? def : JSON.parse(v); } catch (_) { return def; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (_) { return false; } },
+    del(k) { try { localStorage.removeItem(k); } catch (_) {} }
+  };
+  let toastT = null;
+  function toast(m) {
+    let el = $("toast");
+    if (!el) { el = document.createElement("div"); el.id = "toast"; el.setAttribute("role", "status"); document.body.appendChild(el); }
+    el.textContent = m; el.classList.add("on"); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove("on"), 2200);
+  }
+
+  /* ---------- Datos ----------
+     Archivo: { version, registros: [ {id, nivel, serie, sesion, titulo, descripcion, pasaje, resumen,
+     objetivo, explicacion, dinamica, pregunta1, texto, pregunta2, pregunta3, oracion1, oracion2, fecha, mod} ], borrados: {id: ms} } */
+  const CAMPOS = ["nivel", "serie", "sesion", "titulo", "descripcion", "pasaje", "resumen", "objetivo",
+                  "pregunta1", "texto", "pregunta2", "pregunta3", "oracion1", "oracion2", "fecha", "explicacion", "dinamica"];
+  const KEY_DB = "catequesis-db", KEY_CFG = "catequesis-cfg", KEY_UI = "catequesis-ui";
+  const vacio = () => ({ version: 1, registros: [], borrados: {} });
+  function limpiar(d) {
+    const out = vacio();
+    if (!d || typeof d !== "object") return out;
+    const regs = Array.isArray(d) ? d : (d.registros || []);
+    for (const r of regs) {
+      if (!r || r.id == null) continue;
+      const x = { id: String(r.id), mod: +r.mod || 0 };
+      for (const c of CAMPOS) x[c] = r[c] == null ? "" : String(r[c]);
+      out.registros.push(x);
+    }
+    if (d.borrados && typeof d.borrados === "object") for (const k in d.borrados) out.borrados[k] = +d.borrados[k] || 0;
+    return out;
+  }
+  // Une dos copias: por cada sesión gana la modificada más tarde; los borrados se respetan.
+  function unir(a, b) {
+    const m = new Map(), bor = Object.assign({}, a.borrados);
+    for (const k in b.borrados) bor[k] = Math.max(bor[k] || 0, b.borrados[k]);
+    for (const r of a.registros.concat(b.registros)) { const p = m.get(r.id); if (!p || r.mod > p.mod) m.set(r.id, r); }
+    const regs = [...m.values()].filter(r => !(bor[r.id] && bor[r.id] >= r.mod));
+    return { version: 1, registros: regs, borrados: bor };
+  }
+  const firma = d => JSON.stringify(d.registros.slice().sort((x, y) => x.id < y.id ? -1 : 1).map(r => [r.id, r.mod])) + JSON.stringify(Object.keys(d.borrados).sort());
+
+  let db = limpiar(store.get(KEY_DB, null));
+  const guardarLocal = () => store.set(KEY_DB, db);
+  const porId = id => db.registros.find(r => r.id === id);
+
+  /* ---------- GitHub ---------- */
+  const defCfg = { owner: "javierscervera-rgb", repo: "Catequesis", path: "catequesis-parroquia.json", token: "" };
+  let cfg = Object.assign({}, defCfg, store.get(KEY_CFG, {}));
+  const configurado = () => !!(cfg.owner && cfg.repo && cfg.path && cfg.token);
+  const syncEl = $("sync");
+  function estado(clase, texto, titulo) { syncEl.className = clase; syncEl.querySelector("span").textContent = texto; syncEl.title = titulo || texto; }
+  const bytesB64 = b => { let r = ""; for (let i = 0; i < b.length; i += 0x8000) r += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); return btoa(r); };
+  const b64enc = s => bytesB64(new TextEncoder().encode(s));
+  const b64dec = s => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\s/g, "")), c => c.charCodeAt(0)));
+  const apiURL = () => "https://api.github.com/repos/" + encodeURIComponent(cfg.owner) + "/" + encodeURIComponent(cfg.repo) +
+    "/contents/" + cfg.path.split("/").filter(Boolean).map(encodeURIComponent).join("/");
+  async function gh(method, body, accept) {
+    const r = await fetch(apiURL(), { method, cache: "no-store",
+      headers: { "Authorization": "Bearer " + cfg.token, "Accept": accept || "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28",
+                 ...(body ? { "Content-Type": "application/json" } : {}) },
+      body: body ? JSON.stringify(body) : undefined });
+    if (!r.ok) { const e = new Error("http " + r.status); e.status = r.status; throw e; }
+    return r;
+  }
+  async function bajar() {
+    try {
+      const j = await (await gh("GET")).json();
+      let txt = j.content ? b64dec(j.content) : "";
+      if (!txt && j.size > 0) txt = await (await gh("GET", null, "application/vnd.github.raw")).text();
+      return { data: txt ? limpiar(JSON.parse(txt)) : vacio(), sha: j.sha };
+    } catch (e) { if (e.status === 404) return { data: null, sha: null }; throw e; }
+  }
+  async function subir(data, sha) {
+    const body = { message: "Catequesis: " + new Date().toISOString(), content: b64enc(JSON.stringify(data, null, 1)) };
+    if (sha) body.sha = sha;
+    await gh("PUT", body);
+  }
+  // Sin token: lee el archivo publicado junto a esta página (solo lectura).
+  async function bajarPublico() {
+    try {
+      const r = await fetch(cfg.path.split("/").pop() + "?t=" + Date.now(), { cache: "no-store" });
+      if (!r.ok) return null;
+      return limpiar(await r.json());
+    } catch (_) { return null; }
+  }
+  function explicar(e) {
+    if (!navigator.onLine) return "Sin conexión: guardado en este dispositivo";
+    if (e.status === 401) return "Token no válido o caducado";
+    if (e.status === 403) return "El token no tiene permiso de escritura";
+    if (e.status === 404) return "No se encuentra el repositorio";
+    return "No se pudo sincronizar (" + (e.status || "red") + ")";
+  }
+  let sincronizando = false, otraVez = false;
+  async function sync() {
+    if (sincronizando) { otraVez = true; return; }
+    sincronizando = true;
+    try {
+      if (!configurado()) {
+        const pub = await bajarPublico();
+        if (pub) { db = unir(db, pub); guardarLocal(); render(); }
+        const loc = pendientes();
+        estado(loc ? "err" : "", loc ? "Solo en este dispositivo" : "Solo lectura",
+          loc ? "Hay cambios sin subir: configura el token en ⚙︎" : "Para guardar cambios en GitHub, configura el token en ⚙︎");
+        return;
+      }
+      estado("busy", "Sincronizando…");
+      for (let intento = 0; intento < 3; intento++) {
+        const { data, sha } = await bajar();
+        const unido = data ? unir(db, data) : db;
+        db = unido; guardarLocal();
+        if (!data || firma(unido) !== firma(data)) {
+          try { await subir(unido, sha); }
+          catch (e) { if (e.status === 409 || e.status === 422) continue; throw e; }
+        }
+        store.set(KEY_DB + "-subido", firma(db));
+        render();
+        estado("ok", "Guardado en GitHub", "Sincronizado " + new Date().toLocaleTimeString());
+        return;
+      }
+      throw Object.assign(new Error("conflicto"), { status: 409 });
+    } catch (e) {
+      estado("err", explicar(e));
+    } finally {
+      sincronizando = false;
+      if (otraVez) { otraVez = false; sync(); }
+    }
+  }
+  const pendientes = () => db.registros.some(r => r.mod > 0) && store.get(KEY_DB + "-subido", "") !== firma(db);
+  let subirT = null;
+  function cambio() { guardarLocal(); clearTimeout(subirT); subirT = setTimeout(sync, 1500); }
+
+  /* ---------- Utilidades de lista ---------- */
+  const norm = s => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  // Orden de las series: «1. EL CREDO…» o «Bloque IV: …» (números romanos)
+  const ROM = { I: 1, V: 5, X: 10, L: 50 };
+  const romano = t => [...t].reduce((n, c, i, a) => n + (ROM[c] < (ROM[a[i + 1]] || 0) ? -ROM[c] : ROM[c]), 0);
+  const numSerie = s => { s = s || ""; let m = /^\s*(\d+)/.exec(s); if (m) return +m[1]; m = /^\s*\S+\s+([IVXL]+)\b/.exec(s); return m ? romano(m[1]) : 9999; };
+  const fechaES = f => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(f || ""); return m ? `${m[3]}/${m[2]}/${m[1]}` : ""; };
+  const PARTES = [["descripcion"], ["objetivo"], ["texto"], ["pregunta1", "pregunta2", "pregunta3"], ["oracion1", "oracion2"]];
+  const partes = r => PARTES.map(g => g.some(c => (r[c] || "").trim()));
+  const completo = r => partes(r).filter(Boolean).length;
+  function comparar(k) {
+    const base = (a, b) => numSerie(a.serie) - numSerie(b.serie) || (parseInt(a.sesion) || 0) - (parseInt(b.sesion) || 0) || a.titulo.localeCompare(b.titulo, "es");
+    if (k === "sesion" || k === "serie") return base;
+    if (k === "completo") return (a, b) => completo(a) - completo(b) || base(a, b);
+    if (k === "fecha") return (a, b) => (a.fecha || "9999").localeCompare(b.fecha || "9999") || base(a, b);
+    return (a, b) => (a[k] || "").localeCompare(b[k] || "", "es", { sensitivity: "base" }) || base(a, b);
+  }
+
+  /* ---------- Estado de la interfaz ---------- */
+  const ui = Object.assign({ q: "", nivel: "", serie: "", estado: "", desde: "", hasta: "", orden: "serie", dir: 1 }, store.get(KEY_UI, {}));
+  { const pn = new URLSearchParams(location.search).get("nivel"); if (pn !== null && pn !== ui.nivel) { ui.nivel = pn; ui.serie = ""; } }
+  let encontrados = [];   // como el «conjunto encontrado» de FileMaker: la ficha navega por él
+  let actual = null;
+
+  function filtrar() {
+    const palabras = norm(ui.q).split(/\s+/).filter(Boolean);
+    let res = db.registros.filter(r => {
+      if (ui.nivel && r.nivel !== ui.nivel) return false;
+      if (ui.serie && r.serie !== ui.serie) return false;
+      if (ui.desde && (!r.fecha || r.fecha < ui.desde)) return false;
+      if (ui.hasta && (!r.fecha || r.fecha > ui.hasta)) return false;
+      const n = completo(r);
+      if (ui.estado === "completa" && n < PARTES.length) return false;
+      if (ui.estado === "incompleta" && n === PARTES.length) return false;
+      if (ui.estado === "sintexto" && r.texto.trim()) return false;
+      if (ui.estado === "conFecha" && !r.fecha) return false;
+      if (ui.estado === "sinFecha" && r.fecha) return false;
+      if (palabras.length) {
+        const todo = norm(CAMPOS.map(c => c === "fecha" ? fechaES(r.fecha) : r[c]).join(" \u0001 "));
+        if (!palabras.every(p => todo.includes(p))) return false;
+      }
+      return true;
+    });
+    const cmp = comparar(ui.orden);
+    res.sort((a, b) => ui.dir * cmp(a, b));
+    return res;
+  }
+  // Resalta las palabras buscadas (sin tener en cuenta tildes)
+  function resaltar(txt) {
+    const palabras = norm(ui.q).split(/\s+/).filter(Boolean);
+    if (!palabras.length) return esc(txt);
+    const n = norm(txt); const marcas = new Array(txt.length).fill(false);
+    // norm() no cambia la longitud en textos latinos (las tildes se separan y se quitan carácter a carácter)
+    if (n.length !== txt.length) return esc(txt);
+    for (const p of palabras) { let i = 0; while ((i = n.indexOf(p, i)) >= 0) { for (let j = i; j < i + p.length; j++) marcas[j] = true; i += p.length; } }
+    let out = "", on = false;
+    for (let i = 0; i < txt.length; i++) {
+      if (marcas[i] !== on) { out += marcas[i] ? "<mark>" : "</mark>"; on = marcas[i]; }
+      out += esc(txt[i]);
+    }
+    return out + (on ? "</mark>" : "");
+  }
+  function fragmento(r) {
+    const palabras = norm(ui.q).split(/\s+/).filter(Boolean);
+    if (palabras.length) {
+      for (const c of ["titulo", "resumen", "pasaje", "descripcion", "objetivo", "explicacion", "dinamica", "pregunta1", "pregunta2", "pregunta3", "oracion1", "oracion2", "texto"]) {
+        const t = (r[c] || "").replace(/\s+/g, " "), n = norm(t);
+        const i = n.indexOf(palabras[0]);
+        if (i >= 0 && c !== "titulo") { const a = Math.max(0, i - 60); return (a ? "…" : "") + t.slice(a, i + 140); }
+        if (i >= 0) break;
+      }
+    }
+    return r.resumen || r.descripcion || "";
+  }
+
+  function opciones(sel, valores, todos, val) {
+    sel.innerHTML = `<option value="">${esc(todos)}</option>` + valores.map(v => `<option${v === val ? " selected" : ""}>${esc(v)}</option>`).join("");
+    if (val && !valores.includes(val)) sel.value = "";
+  }
+  function listas() {
+    const series = [...new Set(db.registros.filter(r => !ui.nivel || r.nivel === ui.nivel).map(r => r.serie).filter(Boolean))].sort((a, b) => numSerie(a) - numSerie(b) || a.localeCompare(b, "es"));
+    const niveles = [...new Set(db.registros.map(r => r.nivel).filter(Boolean))].sort((a, b) => a.localeCompare(b, "es"));
+    opciones($("fSerie"), series, "Todas las series", ui.serie);
+    opciones($("fNivel"), niveles, "Todos los niveles", ui.nivel);
+    $("dlSeries").innerHTML = series.map(s => `<option value="${esc(s)}">`).join("");
+    $("dlNiveles").innerHTML = [...new Set(niveles.concat(["Juniors"]))].map(s => `<option value="${esc(s)}">`).join("");
+  }
+
+  function renderLista() {
+    document.querySelector("#bar h1").textContent = ui.nivel || "Catequesis";
+    listas();
+    encontrados = filtrar();
+    const total = db.registros.length;
+    $("cuenta").textContent = encontrados.length === total ? `${total} sesiones` : `${encontrados.length} de ${total} sesiones`;
+    document.querySelectorAll(".tabla th").forEach(th => th.setAttribute("aria-sort", th.dataset.k === ui.orden ? (ui.dir > 0 ? "ascending" : "descending") : "none"));
+    const nombres = ["Descripción", "Objetivo", "Texto", "Preguntas", "Oración"];
+    $("filas").innerHTML = encontrados.map(r => {
+      const p = partes(r);
+      return `<tr data-id="${esc(r.id)}">
+        <td>${r.nivel ? `<span class="chip">${esc(r.nivel)}</span>` : ""}</td>
+        <td class="c-serie">${resaltar(r.serie.replace(/^\s*\d+\.\s*/, "").replace(/:.*$/, ""))}</td>
+        <td class="num">${esc(r.sesion)}</td>
+        <td><div class="tit">${resaltar(r.titulo || "(sin título)")}</div><div class="sub">${resaltar(fragmento(r))}</div></td>
+        <td class="c-pasaje">${resaltar(r.pasaje)}</td>
+        <td>${esc(fechaES(r.fecha))}</td>
+        <td class="c-est"><span class="estado" title="${p.map((v, i) => (v ? "✓ " : "✗ ") + nombres[i]).join("\n")}">${p.map(v => `<i class="${v ? "si" : ""}"></i>`).join("")}</span></td>
+      </tr>`;
+    }).join("");
+    $("sinRes").classList.toggle("hidden", encontrados.length > 0);
+  }
+
+  /* ---------- Ficha ---------- */
+  const campos = [...document.querySelectorAll("#ficha [data-f]")];
+  function crece(t) { if (t.tagName !== "TEXTAREA" || t.id === "f-texto" && matchMedia("(min-width: 901px)").matches) return; t.style.height = "auto"; t.style.height = t.scrollHeight + 2 + "px"; }
+  function renderFicha() {
+    if (!encontrados.length) encontrados = filtrar();
+    let r = actual && porId(actual);
+    if (!r) { r = encontrados[0] || db.registros[0]; if (db.registros.length) actual = r ? r.id : null; }   // con la base aún vacía se respeta la sesión pedida
+    const vacia = !r;
+    campos.forEach(el => { el.disabled = vacia; if (document.activeElement !== el) el.value = r ? r[el.dataset.f] || "" : ""; });
+    const i = r ? encontrados.findIndex(x => x.id === r.id) : -1;
+    $("pos").textContent = vacia ? "Sin sesiones" : i >= 0 ? `${i + 1} de ${encontrados.length}` + (encontrados.length < db.registros.length ? ` (filtradas de ${db.registros.length})` : "") : "Fuera del filtro";
+    $("primero").disabled = $("anterior").disabled = i <= 0;
+    $("siguiente").disabled = $("ultimo").disabled = i < 0 || i >= encontrados.length - 1;
+    ["duplicar", "imprimir", "borrar", "pdfBtn"].forEach(b => $(b).disabled = vacia);
+    const url = r ? new URL("catequesis-sesion.html?s=" + encodeURIComponent(r.id), location.href).href : "";
+    $("verBtn").href = url || "catequesis-sesion.html";
+    $("waBtn").href = r ? "https://wa.me/?text=" + encodeURIComponent(`${r.sesion ? r.sesion + ". " : ""}${r.titulo} (${r.nivel})\n${url}`) : "#";
+    requestAnimationFrame(() => campos.forEach(crece));
+    if (r) document.title = `${r.sesion ? r.sesion + ". " : ""}${r.titulo || "Sesión"} · Catequesis`;
+  }
+  campos.forEach(el => el.addEventListener("input", () => {
+    const r = porId(actual); if (!r) return;
+    r[el.dataset.f] = el.value; r.mod = Date.now();
+    crece(el); cambio();
+  }));
+  function ir(id) { actual = id; location.hash = "#ficha/" + encodeURIComponent(id); }
+  function mover(d) {
+    const i = encontrados.findIndex(x => x.id === actual);
+    const j = d === "first" ? 0 : d === "last" ? encontrados.length - 1 : i + d;
+    if (encontrados[j]) ir(encontrados[j].id);
+  }
+  $("primero").onclick = () => mover("first");
+  $("anterior").onclick = () => mover(-1);
+  $("siguiente").onclick = () => mover(1);
+  $("ultimo").onclick = () => mover("last");
+  const nuevoId = () => "s" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  function nueva(base) {
+    const ref = base || porId(actual) || {};
+    const r = { id: nuevoId(), mod: Date.now() };
+    for (const c of CAMPOS) r[c] = base ? (base[c] || "") : "";
+    if (!base) {
+      r.nivel = ref.nivel || ui.nivel || "Juniors"; r.serie = ref.serie || ui.serie || "";
+      const misma = db.registros.filter(x => x.serie === r.serie).map(x => parseInt(x.sesion) || 0);
+      r.sesion = String((misma.length ? Math.max(...misma) : 0) + 1);
+    } else { r.titulo = (base.titulo || "") + " (copia)"; }
+    db.registros.push(r); cambio(); encontrados = filtrar();
+    if (!encontrados.some(x => x.id === r.id)) encontrados.push(r);
+    ir(r.id);
+    setTimeout(() => $(base ? "f-titulo" : "f-titulo").focus(), 50);
+  }
+  $("nuevo").onclick = () => nueva();
+  $("nuevoL").onclick = () => nueva();
+  $("duplicar").onclick = () => { const r = porId(actual); if (r) nueva(r); };
+  $("imprimir").onclick = () => window.print();
+  $("pdfBtn").onclick = async () => {
+    const r = porId(actual); if (!r) return;
+    const b = $("pdfBtn"); b.disabled = true; b.textContent = "Preparando…";
+    try { await CatequesisPDF.descargar(r); } catch (e) { toast("No se pudo crear el PDF"); }
+    b.disabled = false; b.textContent = "PDF";
+  };
+  $("borrar").onclick = () => {
+    const r = porId(actual); if (!r) return;
+    if (!confirm(`¿Borrar la sesión «${r.sesion}. ${r.titulo || "sin título"}»? No se puede deshacer.`)) return;
+    const i = encontrados.findIndex(x => x.id === r.id);
+    db.registros = db.registros.filter(x => x.id !== r.id); db.borrados[r.id] = Date.now();
+    cambio(); encontrados = filtrar();
+    const sig = encontrados[Math.min(Math.max(i, 0), encontrados.length - 1)];
+    if (sig) ir(sig.id); else location.hash = "#lista";
+    toast("Sesión borrada");
+  };
+
+  /* ---------- Vistas ---------- */
+  function vista() {
+    const m = /^#ficha(?:\/(.+))?$/.exec(location.hash);
+    const enFicha = !!m;
+    if (m && m[1]) actual = decodeURIComponent(m[1]);
+    $("lista").classList.toggle("hidden", enFicha); $("ficha").classList.toggle("hidden", !enFicha);
+    $("tabLista").setAttribute("aria-pressed", !enFicha); $("tabFicha").setAttribute("aria-pressed", enFicha);
+    if (enFicha) renderFicha(); else { document.title = "Catequesis · Parroquia"; renderLista(); }
+  }
+  function render() { if ($("ficha").classList.contains("hidden")) renderLista(); else renderFicha(); }
+  window.addEventListener("hashchange", () => { vista(); window.scrollTo(0, 0); });
+  $("tabLista").onclick = () => { location.hash = "#lista"; };
+  $("tabFicha").onclick = () => { location.hash = "#ficha" + (actual ? "/" + encodeURIComponent(actual) : ""); };
+  $("filas").addEventListener("click", e => { const tr = e.target.closest("tr[data-id]"); if (tr) ir(tr.dataset.id); });
+  document.querySelectorAll(".tabla th").forEach(th => th.onclick = () => {
+    if (ui.orden === th.dataset.k) ui.dir = -ui.dir; else { ui.orden = th.dataset.k; ui.dir = 1; }
+    store.set(KEY_UI, ui); renderLista();
+  });
+  const filtros = { buscar: "q", fNivel: "nivel", fSerie: "serie", fEstado: "estado", fDesde: "desde", fHasta: "hasta" };
+  for (const [id, k] of Object.entries(filtros)) {
+    $(id).value = ui[k];
+    $(id).addEventListener("input", () => { ui[k] = $(id).value; store.set(KEY_UI, ui); renderLista(); });
+  }
+  $("limpiar").onclick = () => {
+    Object.assign(ui, { q: "", nivel: "", serie: "", estado: "", desde: "", hasta: "" });
+    for (const [id, k] of Object.entries(filtros)) $(id).value = ui[k];
+    store.set(KEY_UI, ui); renderLista(); $("buscar").focus();
+  };
+  document.addEventListener("keydown", e => {
+    if ($("ficha").classList.contains("hidden") || !(e.altKey || e.metaKey)) return;
+    if (e.key === "ArrowLeft") { e.preventDefault(); mover(-1); }
+    if (e.key === "ArrowRight") { e.preventDefault(); mover(1); }
+  });
+  window.addEventListener("resize", () => campos.forEach(crece));
+
+  /* ---------- Ajustes ---------- */
+  const dlg = $("cfg"), cMsg = $("cMsg");
+  $("cfgBtn").onclick = () => {
+    $("cOwner").value = cfg.owner; $("cRepo").value = cfg.repo; $("cPath").value = cfg.path; $("cToken").value = cfg.token;
+    cMsg.className = "msg"; cMsg.textContent = configurado() ? "Configurado." : "Sin token: solo lectura."; dlg.showModal();
+  };
+  $("cCerrar").onclick = () => dlg.close();
+  $("cGuardar").onclick = async () => {
+    cfg = { owner: $("cOwner").value.trim(), repo: $("cRepo").value.trim(), path: $("cPath").value.trim().replace(/^\/+/, "") || defCfg.path, token: $("cToken").value.trim() };
+    store.set(KEY_CFG, cfg); cMsg.className = "msg"; cMsg.textContent = "Sincronizando…";
+    await sync();
+    const ok = syncEl.classList.contains("ok");
+    cMsg.className = "msg " + (ok ? "ok" : "err"); cMsg.textContent = syncEl.title;
+  };
+  $("cOlvidar").onclick = () => { cfg.token = ""; store.set(KEY_CFG, cfg); $("cToken").value = ""; cMsg.className = "msg"; cMsg.textContent = "Token borrado de este navegador."; sync(); };
+  function descargar(nombre, tipo, txt) {
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([txt], { type: tipo })); a.download = nombre;
+    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  }
+  const hoy = () => new Date().toISOString().slice(0, 10);
+  $("expJSON").onclick = () => descargar(`catequesis-${hoy()}.json`, "application/json", JSON.stringify(db, null, 1));
+  $("expCSV").onclick = () => {
+    const lista = filtrar(), q = v => '"' + String(v ?? "").replace(/"/g, '""') + '"';
+    const csv = [CAMPOS.map(q).join(";")].concat(lista.map(r => CAMPOS.map(c => q(r[c])).join(";"))).join("\r\n");
+    descargar(`catequesis-${hoy()}.csv`, "text/csv;charset=utf-8", "﻿" + csv);
+  };
+  $("impJSON").onchange = async e => {
+    const f = e.target.files[0]; if (!f) return;
+    try {
+      const d = limpiar(JSON.parse(await f.text()));
+      const ahora = Date.now(); d.registros.forEach(r => r.mod = Math.max(r.mod, ahora));
+      db = unir(db, d); cambio(); render(); toast(`Importadas ${d.registros.length} sesiones`);
+    } catch (_) { toast("El archivo no es un JSON válido"); }
+    e.target.value = "";
+  };
+  $("temaBtn").onclick = () => {
+    const t = document.documentElement.getAttribute("data-tema") === "claro" ? "oscuro" : "claro";
+    document.documentElement.setAttribute("data-tema", t);
+    const m = document.querySelector('meta[name="theme-color"]'); if (m) m.content = t === "claro" ? "#F6F0E7" : "#171310";
+    try { localStorage.setItem("catequesis-tema", t); } catch (_) {}
+  };
+
+  /* ---------- Arranque ---------- */
+  if (!location.hash) location.replace("#lista");
+  vista();
+  sync();
+  window.addEventListener("online", sync);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && !sincronizando) sync(); });
+})();
+</script>
+</body>
+</html>
